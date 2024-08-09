@@ -738,7 +738,6 @@ gabriel.ns.cloudflare.com
 galilea.ns.cloudflare.com
 garrett.ns.cloudflare.com
 georgia.ns.cloudflare.com
-google.comads.phonepe.com
 houston.ns.cloudflare.com
 ignacio.ns.cloudflare.com
 images.greenmangaming.com
