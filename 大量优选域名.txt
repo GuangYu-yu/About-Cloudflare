@@ -28,6 +28,7 @@ api.skk.moe
 bd.visa.com
 cdn.skk.moe
 discord.com
+HubSpot.com
 jsw.ibm.com
 leb.fbi.gov
 marketo.com
