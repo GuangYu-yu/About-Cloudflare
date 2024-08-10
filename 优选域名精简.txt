@@ -11,9 +11,12 @@ malaysia.com
 time.ibm.com
 www2.fbi.gov
 gfsc.mars.com
+api.ecosia.org
+cdn.ecosia.org
 disqus.skk.moe
 news.abobe.com
 omt.garmin.com
+www.ecosia.org
 www.visa.co.jp
 www.lumito.net
 cdn.shopify.com
