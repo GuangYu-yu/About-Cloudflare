@@ -836,6 +836,7 @@ play.na.leagueoflegends.com
 www.visasoutheasteurope.com
 andronicus.ns.cloudflare.com
 cf-assets.www.cloudflare.com
+challenges.cloudflare-cn.com
 evangeline.ns.cloudflare.com
 faceit-client.faceit-cdn.net
 jacqueline.ns.cloudflare.com
