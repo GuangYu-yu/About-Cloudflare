@@ -1260,7 +1260,6 @@ mercuryui-linchpin.phonepe.com
 perfectageclub.loreal-paris.de
 three-cust-assets.hcaptcha.com
 anticheat-client.faceit-cdn.net
-soundboxmqttstaging.phonepe.com
 performance.radar.cloudflare.com
 grandchallenges.springernature.com
 dynamic-values-edge-service.doordash.com
