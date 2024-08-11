@@ -15,6 +15,7 @@ skk.moe
 tvtv.us
 twip.kr
 time.is
+clot.com
 comss.ru
 icook.hk
 icook.tw
@@ -37,8 +38,8 @@ Canva.com
 d.skk.moe
 eneba.com
 japan.com
-kynix.com
 kmart.com
+kynix.com
 kinogo.eu
 kurly.com
 m.fbi.gov
@@ -104,6 +105,7 @@ openwiki.kr
 relieved.co
 rs.visa.com
 shopify.com
+teasenz.com
 twoeggz.com
 textnow.com
 tiensmed.ru
@@ -132,6 +134,7 @@ cis.visa.com
 cdn.visa.com
 chn.mars.com
 doordash.com
+en.chuwi.com
 fk1ps.edu.hk
 frcss.edu.hk
 homehacks.co
@@ -146,6 +149,7 @@ opencart.com
 oneamour.com
 plkcs.edu.hk
 polestar.com
+ru.chuwi.com
 slyck.edu.hk
 thescore.com
 travelask.ru
@@ -161,8 +165,10 @@ wos.mars.com
 www.mars.com
 ycmps.edu.hk
 api.wemod.com
+bbs.chuwi.com
 banksalad.com
 blog.icook.tw
+cosplayfu.com
 chipandco.com
 changelly.com
 charter97.org
@@ -186,8 +192,8 @@ lms.ln.edu.hk
 login.wto.org
 money18.on.cc
 my.garmin.com
-nautiljon.com
 nshipster.com
+nautiljon.com
 nexusmods.com
 nairaland.com
 neoseeker.com
@@ -207,6 +213,7 @@ tlauncher.org
 tweaktown.com
 tktcps.edu.hk
 vault.fbi.gov
+www.chuwi.com
 wisely.edu.hk
 www.wemod.com
 www.whoer.net
@@ -256,6 +263,7 @@ plk1984.edu.hk
 pt.shopify.com
 pg.phonepe.com
 sso.garmin.com
+teach-this.com
 toy-people.com
 tokyokinky.com
 trulytokyo.com
@@ -305,6 +313,7 @@ js.hcaptcha.com
 klaruslight.com
 kollectionk.com
 Kickstarter.com
+l.csa.canon.com
 lorealparis.com
 m1.asiabill.com
 m.investing.com
@@ -314,6 +323,7 @@ nevsepic.com.ua
 obozrevatel.com
 ruleset.skk.moe
 spsssub.ibm.com
+try.tp-link.com
 tandfonline.com
 travelmamas.com
 telegraf.com.ua
@@ -366,6 +376,7 @@ cursorinfo.co.il
 ca.investing.com
 cn.investing.com
 cfip.xxxxxxxx.tk
+delivery.cvs.com
 de.investing.com
 docs.shopify.com
 deliveryhero.com
@@ -422,6 +433,7 @@ techzone.ibm.com
 tech.phonepe.com
 uk.investing.com
 vn.investing.com
+www.en.chuwi.com
 www.npgps.edu.hk
 www.ycmps.edu.hk
 www.tmgss.edu.hk
@@ -466,11 +478,14 @@ investor.uber.com
 ju.outofmemory.cn
 js.cloudflare.com
 jp.cloudflare.com
+locator.chase.com
 legion.lenovo.com
 learnsmart.edu.hk
+newmobilelife.com
 notebookcheck.net
 newsmarket.com.tw
 newsmatomedia.com
+orientalsunday.hk
 odditycentral.com
 ontheworldmap.com
 plkhyc1984.edu.hk
@@ -491,6 +506,7 @@ www.visaeurope.at
 www.visaeurope.ch
 api.cloudflare.com
 aim.cloudflare.com
+casinolistings.com
 cosmosmagazine.com
 citychiconline.com
 caribbean.visa.com
@@ -526,6 +542,7 @@ na-sjn.marketo.com
 ns2.cloudflare.com
 next.nexusmods.com
 photos.shopify.com
+stores.bestbuy.com
 support.garmin.com
 twentytwowords.com
 thenewdaily.com.au
@@ -559,6 +576,7 @@ download.garmin.com
 dasher.doordash.com
 eclass.tmgss.edu.hk
 experts.shopify.com
+investor.costco.com
 ir.deliveryhero.com
 iguazu.doordash.com
 info.cloudflare.com
@@ -626,6 +644,8 @@ hardware.shopify.com
 jo.ns.cloudflare.com
 latency-test.skk.moe
 media.discordapp.net
+notdressedaslamb.com
+nationmultimedia.com
 office-converter.com
 official-drivers.com
 online-stopwatch.com
@@ -642,10 +662,12 @@ skyrim.nexusmods.com
 support.nitropack.io
 sequencing.roche.com
 services.phonepe.com
+taydaelectronics.com
 thestudentroom.co.uk
 tasteandtellblog.com
 tw.carmax.garmin.com
 teams.cloudflare.com
+www.theme-junkie.com
 www.twghfwfts.edu.hk
 wtt-baptistkg.edu.hk
 www.deliveryhero.com
@@ -661,10 +683,12 @@ ace.ns.cloudflare.com
 alejandracaiccedo.com
 crushtheusmleexam.com
 concordiashanghai.org
+chinamoneynetwork.com
 collinsdictionary.com
 classroom.udacity.com
 careers-us.garmin.com
 connectapi.garmin.com
+demo.theme-junkie.com
 documents.marketo.com
 eclass.fungkei.edu.hk
 eve.ns.cloudflare.com
@@ -672,6 +696,8 @@ ecommerce.shopify.com
 eu-nld101.marketo.com
 engage-ab.marketo.com
 fxrates.investing.com
+interactive.kohls.com
+investors.bestbuy.com
 i-cncdn.investing.com
 investors.shopify.com
 identity.doordash.com
@@ -687,6 +713,8 @@ pk.visamiddleeast.com
 qa.visamiddleeast.com
 research.polyu.edu.hk
 rex.ns.cloudflare.com
+support.usa.canon.com
+shop.theme-junkie.com
 scholars.cityu.edu.hk
 support.goodnotes.com
 support.video.ibm.com
@@ -764,6 +792,7 @@ newassets.hcaptcha.com
 otto.ns.cloudflare.com
 odin.ns.cloudflare.com
 opal.ns.cloudflare.com
+preferences.tr.tjx.com
 phil.ns.cloudflare.com
 peering.cloudflare.com
 repository.hkbu.edu.hk
@@ -778,6 +807,7 @@ shaz.ns.cloudflare.com
 sima.ns.cloudflare.com
 static.alphacoders.com
 support.discordapp.com
+themainstreetmouse.com
 theblackpeppercorn.com
 tori.ns.cloudflare.com
 tate.ns.cloudflare.com
@@ -1234,4 +1264,6 @@ three-cust-assets.hcaptcha.com
 anticheat-client.faceit-cdn.net
 soundboxmqttstaging.phonepe.com
 performance.radar.cloudflare.com
+grandchallenges.springernature.com
 dynamic-values-edge-service.doordash.com
+appb1.paymentsinvoicing.bankofamerica.com
