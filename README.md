@@ -18,3 +18,5 @@ jsDelivr
 `originfastly.jsdelivr.net`
 
 `quantil.jsdelivr.net`
+
+`raw.staticdn.net`
