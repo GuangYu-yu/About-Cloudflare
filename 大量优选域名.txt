@@ -40,7 +40,6 @@ japan.com
 kmart.com
 kynix.com
 kinogo.eu
-kurly.com
 m.fbi.gov
 newizv.ru
 odict.net
@@ -51,20 +50,18 @@ tmart.com
 topwar.ru
 travel.ru
 theins.ru
-vimeo.com
 104.com.tw
 115155.xyz
 24smi.info
 cuojue.org
 cf.0sm.com
+gitlab.com
 garmin.com
 gur.gov.ua
 ipv4.ip.sb
 ip.skk.moe
-kraken.com
 korvia.com
 kgirls.net
-medium.com
 nijie.info
 oc.skk.moe
 rxlist.com
@@ -91,7 +88,6 @@ cf-ipfs.com
 coinpan.com
 cchk.edu.hk
 cdn.skk.moe
-discord.com
 fkyc.edu.hk
 hkic.edu.hk
 HubSpot.com
@@ -111,7 +107,6 @@ textnow.com
 tiensmed.ru
 tv.icook.tw
 www.skk.moe
-www.who.int
 www.wto.org
 www.visa.de
 www.visa.fr
@@ -156,7 +151,6 @@ tokenpost.kr
 time.ibm.com
 tips.fbi.gov
 usa.visa.com
-un.goasa.top
 www.visa.com
 www2.fbi.gov
 www.csgo.com
@@ -172,7 +166,6 @@ cloudflare.tv
 clb.pages.dev
 cosplayfu.com
 chipandco.com
-changelly.com
 charter97.org
 cyclowiki.org
 cheers.com.tw
@@ -227,7 +220,6 @@ www.npmjs.com
 wam.roche.com
 www.roche.com
 yingwa.edu.hk
-yx.887141.xyz
 absx.pages.dev
 api-ipv4.ip.sb
 api-ipv6.ip.sb
@@ -246,23 +238,18 @@ cymcaps.edu.hk
 cherish.edu.hk
 definition.org
 disqus.skk.moe
-discordapp.com
 discordcdn.com
-es.shopify.com
 fly.garmin.com
 gcs.garmin.com
 iles.pages.dev
-it.shopify.com
 keywordtool.io
 luxandlush.com
 m.asiabill.com
 nadaguides.com
 noteburner.com
 news.adobe.com
-outofmemory.cn
 omt.garmin.com
 plk1984.edu.hk
-pt.shopify.com
 pg.phonepe.com
 rmgy.pages.dev
 sso.garmin.com
@@ -273,6 +260,7 @@ trulytokyo.com
 thisisgame.com
 tubebox365.com
 taiping.edu.hk
+www.gitlab.com
 wzyh.pages.dev
 www.moc.gov.qa
 www.sou.gov.se
@@ -287,7 +275,6 @@ www.visa.co.il
 www.ecosia.org
 www.lumito.net
 ychnlkg.edu.hk
-zh.shopify.com
 1-3lm.pages.dev
 23vip.pages.dev
 alisg.pages.dev
@@ -303,6 +290,7 @@ b9348.pages.dev
 bitdefender.com
 babyhome.com.tw
 buzzlife.com.tw
+chef.gitlab.com
 csafe.pages.dev
 chinavasion.com
 careerengine.us
@@ -313,7 +301,6 @@ cutekaomoji.com
 cotoacademy.com
 cm.asiabill.com
 couponbirds.com
-cdn.shopify.com
 cdn.2020111.xyz
 ducky.pages.dev
 dailycaller.com
@@ -321,7 +308,6 @@ design.visa.com
 emile.pages.dev
 haibo.pages.dev
 hotungss.edu.hk
-ir.doordash.com
 jenly.pages.dev
 js.hcaptcha.com
 klaruslight.com
@@ -337,6 +323,7 @@ nitai.pages.dev
 novayagazeta.ru
 nevsepic.com.ua
 obozrevatel.com
+page.gitlab.com
 ruleset.skk.moe
 spsssub.ibm.com
 try.tp-link.com
@@ -367,17 +354,16 @@ www.visa.com.au
 www.visa.com.mt
 www.visa.com.br
 www.shopify.com
-www.patreon.com
 wosdev.mars.com
 www.phonepe.com
 yatungkg.edu.hk
 25-96u.pages.dev
 75-1s4.pages.dev
+about.gitlab.com
 api.asiabill.com
 auth.udacity.com
 au.investing.com
 ads-b.garmin.com
-apps.shopify.com
 api.hcaptcha.com
 apollo.roche.com
 bpfav2.pages.dev
@@ -399,7 +385,6 @@ cn.investing.com
 cfip.xxxxxxxx.tk
 delivery.cvs.com
 de.investing.com
-docs.shopify.com
 deliveryhero.com
 dropboxchina.com
 docs.phonepe.com
@@ -424,7 +409,6 @@ kr.investing.com
 ms.investing.com
 mx.investing.com
 myanmar.visa.com
-nextdealshop.com
 nintendolife.com
 news-medical.net
 naturalpedia.com
@@ -476,13 +460,12 @@ za.investing.com
 3p.cloudflare.net
 618-c1l.pages.dev
 888-bqp.pages.dev
+altssh.gitlab.com
 alk2469.pages.dev
 api.investing.com
 ai.cloudflare.com
-admin.shopify.com
 api2.hcaptcha.com
 bpb-7b4.pages.dev
-burst.shopify.com
 blog.doordash.com
 cloudflaressl.com
 cookieandkate.com
@@ -492,12 +475,10 @@ cp.cloudflare.com
 de.cloudflare.com
 dashflare.skk.moe
 docs.hcaptcha.com
-dl.discordapp.net
 dialog1.roche.com
 esda5.flss.edu.hk
 esda.tmgss.edu.hk
 epay.cityu.edu.hk
-education.cfr.org
 emby2.misakaf.org
 fqnovel.pages.dev
 forums.garmin.com
@@ -507,7 +488,6 @@ investor.visa.com
 images.garmin.com
 imgs.hcaptcha.com
 investor.uber.com
-ju.outofmemory.cn
 js.cloudflare.com
 jp.cloudflare.com
 locator.chase.com
@@ -553,13 +533,11 @@ cp4.cloudflare.com
 careers.garmin.com
 cn.mini.garmin.com
 connect.garmin.com
-cdn.discordapp.com
 certinfo.roche.com
 digitaljournal.com
 docsonline.wto.org
 developer.visa.com
 explore.garmin.com
-freedom.garmin.com
 gateway.discord.gg
 hou08051.pages.dev
 home-5iw.pages.dev
@@ -568,6 +546,7 @@ inlogs.nektony.com
 inreach.garmin.com
 imgs3.hcaptcha.com
 kylieminteriors.ca
+levelup.gitlab.com
 luyaohua.pages.dev
 live.cloudflare.tv
 m.hk.investing.com
@@ -585,6 +564,7 @@ na-sjn.marketo.com
 ns2.cloudflare.com
 next.nexusmods.com
 photos.shopify.com
+staging.gitlab.com
 stores.bestbuy.com
 support.garmin.com
 thispage.pages.dev
@@ -593,14 +573,12 @@ thenewdaily.com.au
 tattoo-journal.com
 tokyoweekender.com
 tvc4.investing.com
-themes.shopify.com
 uuid-1tp.pages.dev
 uptime.phonepe.com
 visaready.visa.com
 www.cloudflare.net
 wetrmczm.pages.dev
 www.skhhsps.edu.hk
-www.outofmemory.cn
 www.hlmssst.edu.hk
 www.cymcaps.edu.hk
 www.cloudflare.com
@@ -626,13 +604,11 @@ dash.cloudflare.com
 download.garmin.com
 dasher.doordash.com
 eclass.tmgss.edu.hk
-experts.shopify.com
 gofly-e6k.pages.dev
 investor.costco.com
 ir.deliveryhero.com
 iguazu.doordash.com
 info.cloudflare.com
-juke.outofmemory.cn
 ka-gold-jewelry.com
 live.cloudflare.com
 log.bpminecraft.com
@@ -647,8 +623,8 @@ na-sj23.marketo.com
 na-ab21.marketo.com
 na-ab31.marketo.com
 na-sj13.marketo.com
+packages.gitlab.com
 portal.asiabill.com
-partner.shopify.com
 qurabizfs.pages.dev
 rpki.cloudflare.com
 suber-9q4.pages.dev
@@ -669,7 +645,6 @@ www.alphacoders.com
 www.hugedomains.com
 www.shoutmeloud.com
 xiao-feng.pages.dev
-accounts.shopify.com
 app-sj14.marketo.com
 app-ab10.marketo.com
 app-ab32.marketo.com
@@ -682,6 +657,7 @@ bun-ui-ocs.pages.dev
 bipartisanreport.com
 blogs.cloudflare.com
 bootcamp.uxdesign.cc
+customers.gitlab.com
 cloudflareaccess.com
 cloudflareclient.com
 cloudflarestream.com
@@ -698,11 +674,8 @@ eu-lon09.marketo.com
 eu-lon05.marketo.com
 forums.nexusmods.com
 gates.cloudflare.com
-hatchful.shopify.com
-hardware.shopify.com
 jo.ns.cloudflare.com
 latency-test.skk.moe
-media.discordapp.net
 ni.cloudflaressl.com
 notdressedaslamb.com
 nationmultimedia.com
@@ -710,7 +683,6 @@ office-converter.com
 official-drivers.com
 online-stopwatch.com
 preschool.isf.edu.hk
-partners.shopify.com
 pics.alphacoders.com
 rule34zone.pages.dev
 radar.cloudflare.com
@@ -718,7 +690,6 @@ scholars.hkbu.edu.hk
 safepay.asiabill.com
 ssltsw.investing.com
 speed.cloudflare.com
-stories.doordash.com
 skyrim.nexusmods.com
 support.nitropack.io
 sequencing.roche.com
@@ -742,7 +713,6 @@ app-lon06.marketo.com
 ada.ns.cloudflare.com
 ara.ns.cloudflare.com
 ace.ns.cloudflare.com
-alejandracaiccedo.com
 cloudflarepreview.com
 cloudflarestorage.com
 crushtheusmleexam.com
@@ -756,7 +726,6 @@ demo.theme-junkie.com
 documents.marketo.com
 eclass.fungkei.edu.hk
 eve.ns.cloudflare.com
-ecommerce.shopify.com
 eu-nld101.marketo.com
 engage-ab.marketo.com
 fetch-riolu.pages.dev
@@ -790,7 +759,6 @@ support.goodnotes.com
 support.video.ibm.com
 sky.ns.cloudflare.com
 storage-cdn.wemod.com
-status.discordapp.com
 thewhiskyexchange.com
 thechronicleherald.ca
 www.heepwohcsw.edu.hk
@@ -803,7 +771,6 @@ aldo.ns.cloudflare.com
 adam.ns.cloudflare.com
 amos.ns.cloudflare.com
 aron.ns.cloudflare.com
-api.greenmangaming.com
 battlefieldtracker.com
 benefitsource.visa.com
 beau.ns.cloudflare.com
@@ -885,7 +852,6 @@ sparrow.cloudflare.com
 shaz.ns.cloudflare.com
 sima.ns.cloudflare.com
 static.alphacoders.com
-support.discordapp.com
 tor.cloudflare-dns.com
 themainstreetmouse.com
 theblackpeppercorn.com
@@ -899,7 +865,6 @@ vern.ns.cloudflare.com
 workers.cloudflare.com
 west.ns.cloudflare.com
 will.ns.cloudflare.com
-www.greenmangaming.com
 yiyusoftware.pages.dev
 zeus.ns.cloudflare.com
 057592a7.phuh.pages.dev
@@ -1156,13 +1121,11 @@ millie.ns.cloudflare.com
 monika.ns.cloudflare.com
 magali.ns.cloudflare.com
 martha.ns.cloudflare.com
-media.greenmangaming.com
 net.cloudflareaccess.com
 ns2ns2.cloudflaressl.com
 olivia.ns.cloudflare.com
 oaklyn.ns.cloudflare.com
 pkg.cloudflareclient.com
-production-4kg.pages.dev
 porter.ns.cloudflare.com
 patryk.ns.cloudflare.com
 paloma.ns.cloudflare.com
@@ -1249,7 +1212,6 @@ georgia.ns.cloudflare.com
 help.cloudflareclient.com
 houston.ns.cloudflare.com
 ignacio.ns.cloudflare.com
-images.greenmangaming.com
 jillian.ns.cloudflare.com
 joaquin.ns.cloudflare.com
 journey.ns.cloudflare.com
@@ -1263,7 +1225,6 @@ lindsey.ns.cloudflare.com
 luciane.ns.cloudflare.com
 liberty.ns.cloudflare.com
 lochlan.ns.cloudflare.com
-login.leagueoflegends.com
 malcolm.ns.cloudflare.com
 memphis.ns.cloudflare.com
 mallory.ns.cloudflare.com
@@ -1319,9 +1280,9 @@ dataplatform.cloud.ibm.com
 download.yunzhongzhuan.com
 embed.cloudflarestream.com
 e10c0e4b.oodaeq2.pages.dev
+federal-support.gitlab.com
 freeyx.cloudflare88.eu.org
 hello.cloudflareaccess.com
-html54stock.outofmemory.cn
 harleigh.ns.cloudflare.com
 izabella.ns.cloudflare.com
 kristina.ns.cloudflare.com
@@ -1364,8 +1325,6 @@ engage.cloudflareclient.com
 eb043cc5.mkhalili.pages.dev
 elisabeth.ns.cloudflare.com
 fattouche.ns.cloudflare.com
-images-ext-2.discordapp.net
-images-ext-1.discordapp.net
 josephine.ns.cloudflare.com
 johnathan.ns.cloudflare.com
 lumion.cloudflareaccess.com
