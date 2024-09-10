@@ -4,6 +4,7 @@ tvtv.us
 time.is
 icook.hk
 icook.tw
+gitlab.com
 garmin.com
 www.gov.ua
 api.skk.moe
