@@ -1,5 +1,11 @@
 # About-Cloudflare
 
+Cloudflare的CIDR
+
+`https://raw.githubusercontent.com/GuangYu-yu/About-Cloudflare/main/output_folder/CIDR.txt`
+
+# Github镜像
+
 在原URL前加上`https://ghproxy.com/`
 
 `cdn.jsdelivr.net/gh`
