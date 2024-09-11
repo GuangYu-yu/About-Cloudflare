@@ -1,4 +1,4 @@
-name: Merge Cloudflare CIDR Files
+name: CloudflareCIDR合并地址
 
 on:
   schedule:
@@ -23,22 +23,29 @@ jobs:
       run: wget -O CloudflareCIDR-v6.txt https://raw.githubusercontent.com/GuangYu-yu/ACL4SSR/main/Clash/CloudflareCIDR-v6.txt
 
     - name: 合并文件
-      run: cat CloudflareCIDR.txt CloudflareCIDR-v6.txt > CIDR.txt
+      run: cat CloudflareCIDR.txt CloudflareCIDR-v6.txt > CloudflareCIDR合并地址.txt
 
     - name: 移动合并后的文件到指定文件夹
       run: |
         mkdir -p output_folder
-        mv CIDR.txt output_folder/
+        mv CloudflareCIDR合并地址.txt output_folder/
 
     - name: 配置Git用户信息
       run: |
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
 
+    - name: 检查是否有更改
+      run: |
+        git add output_folder/CloudflareCIDR合并地址.txt
+        if git diff --cached --quiet; then
+          echo "没有需要提交的更改"
+          exit 0
+        fi
+
     - name: 提交更改
       run: |
-        git add output_folder/CIDR.txt
-        git commit -m "更新合并的Cloudflare CIDR文件" || echo "没有需要提交的更改"
+        git commit -m "更新合并的 Cloudflare CIDR 文件" || echo "没有需要提交的更改"
 
     - name: 推送更改
       run: git push
