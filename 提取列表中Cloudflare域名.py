@@ -93,7 +93,7 @@ def save_temp_yaml(domains):
 def is_ip_in_cidr(ip, cidr_list):
     for cidr in cidr_list:
         if '/' in cidr:
-            network = ipaddress.ip_network(cidr.strip())
+            network = ipaddress.ip_network(cidr.strip(), strict=False)
             if ipaddress.ip_address(ip) in network:
                 return True
     return False
@@ -132,15 +132,29 @@ def main():
                 f.write(f"{cidr}\n")
 
         # 保存优选域名和优选域名IP
-        with open('优选域名.txt', 'w') as f_domains, open('优选域名ip.txt', 'w') as f_ips:
+        优选域名 = sorted(all_domains.keys())  # 对域名进行排序
+        ipv4_set = set()
+        ipv6_set = set()
+
+        with open('优选域名.txt', 'w') as f_domains:
             for domain, data in all_domains.items():
                 for ip in data['ips']:
                     if is_ip_in_cidr(ip, cidr_list):
                         f_domains.write(f"{domain}\n")
-                        f_ips.write(f"{ip}\n")
+                        if ':' in ip:  # IPv6
+                            ipv6_set.add(ip)
+                        else:  # IPv4
+                            ipv4_set.add(ip)
                         break  # 找到一个匹配后跳出循环
 
-        print(f"匹配到的优选域名数量: {len(all_domains)}")
+        # 写入优选域名IP，分别处理IPv4和IPv6
+        with open('优选域名ip.txt', 'w') as f_ips:
+            for ip in sorted(ipv4_set):
+                f_ips.write(f"{ip}\n")
+            for ip in sorted(ipv6_set):
+                f_ips.write(f"{ip}\n")
+
+        print(f"匹配到的优选域名数量: {len(优选域名)}")
 
         # 删除临时 YAML 文件和缓存的 CIDR 文件
         if os.path.exists(TEMP_YAML_FILE):
