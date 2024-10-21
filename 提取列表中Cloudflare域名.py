@@ -17,6 +17,8 @@ GROUP_2_URLS = [
 ]
 GROUP_3_URL = 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/AdGuard/Advertising/Advertising.txt'
 CIDR_URL = 'https://raw.githubusercontent.com/GuangYu-yu/ACL4SSR/refs/heads/main/Clash/Cloudflare.txt'
+TEMP_YAML_FILE = 'temp_domains.yaml'
+CACHED_CIDR_FILE = 'cached_cidr.txt'
 
 # 初始化锁
 file_lock = threading.Lock()
@@ -53,7 +55,6 @@ def fetch_group_3():
     response.raise_for_status()
     domains = {}
     for line in response.text.splitlines():
-        # 提取||和^之间的域名
         match = re.search(r'\|\|([^\^]+)\^', line)
         if match:
             domain = match.group(1)
@@ -72,7 +73,7 @@ def query_ip_info(domain, retries=3):
             ip_info_div = soup.find('div', id='ipinfo')
             if ip_info_div:
                 ips = [a.get('title') for a in ip_info_div.find_all('a') if a.get('href', '').startswith('/ip/')]
-                return list(set(ips))  # 这里确保返回的IP去重
+                return list(set(ips))  # 确保返回的IP去重
             return []
         except Exception:
             continue  # 继续重试
@@ -83,6 +84,11 @@ def load_cidr_list():
     response = requests.get(CIDR_URL)
     response.raise_for_status()
     return response.text.splitlines()
+
+def save_temp_yaml(domains):
+    """将整个域名和IP数据写入临时YAML文件。"""
+    with open(TEMP_YAML_FILE, 'w') as f:
+        yaml.dump(domains, f)
 
 def is_ip_in_cidr(ip, cidr_list):
     for cidr in cidr_list:
@@ -114,11 +120,16 @@ def main():
                     ips = future.result()
                     if ips:
                         all_domains[domain]['ips'].extend(ips)
+                        # 实时写入临时 YAML 文件
+                        save_temp_yaml(all_domains)
                 except Exception:
                     continue  # 忽略查询错误
 
         # 加载 CIDR 列表
         cidr_list = load_cidr_list()
+        with open(CACHED_CIDR_FILE, 'w') as f:
+            for cidr in cidr_list:
+                f.write(f"{cidr}\n")
 
         # 保存优选域名和优选域名IP
         with open('优选域名.txt', 'w') as f_domains, open('优选域名ip.txt', 'w') as f_ips:
@@ -130,6 +141,12 @@ def main():
                         break  # 找到一个匹配后跳出循环
 
         print(f"匹配到的优选域名数量: {len(all_domains)}")
+
+        # 删除临时 YAML 文件和缓存的 CIDR 文件
+        if os.path.exists(TEMP_YAML_FILE):
+            os.remove(TEMP_YAML_FILE)
+        if os.path.exists(CACHED_CIDR_FILE):
+            os.remove(CACHED_CIDR_FILE)
 
     except Exception as e:
         print(f"发生错误: {e}")
