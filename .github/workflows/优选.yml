@@ -3,7 +3,7 @@ name: 手动运行列表过滤脚本
 on:
   workflow_dispatch: # 手动触发
   schedule:
-    - cron: "0 16 */3 * *"  # 每天8点运行一次
+    - cron: "0 16 */3 * *"  # 每天3天16点运行一次
 
 jobs:
   run-script:
