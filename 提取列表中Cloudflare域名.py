@@ -111,7 +111,7 @@ def main():
         all_domains = {**domains_group_1, **domains_group_2, **domains_group_3}
         queried_domains = set()  # 记录已查询的域名
         
-        with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=50) as executor:
             future_to_domain = {executor.submit(query_ip_info, domain): domain for domain in all_domains}
             for future in concurrent.futures.as_completed(future_to_domain):
                 domain = future_to_domain[future]
