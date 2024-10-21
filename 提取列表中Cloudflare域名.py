@@ -19,79 +19,7 @@ URLS_ADS = [
     'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/AdGuard/Advertising/Advertising.txt',
 ]
 
-def fetch_domains_with_prefix(url):
-    """获取带前缀的域名列表"""
-    response = requests.get(url)
-    response.raise_for_status()
-    domains = set()
-    for line in response.text.splitlines():
-        if line.startswith('DOMAIN-SUFFIX,') or line.startswith('DOMAIN,'):
-            domain = line.split(',')[1].strip()
-            domains.add(domain)
-    return domains
-
-def fetch_normal_domains(url):
-    """获取正常域名列表"""
-    response = requests.get(url)
-    response.raise_for_status()
-    domains = set()
-    for line in response.text.splitlines():
-        domains.add(line.strip())
-    return domains
-
-def fetch_ads_domains(url):
-    """获取广告域名列表"""
-    response = requests.get(url)
-    response.raise_for_status()
-    domains = set()
-    for line in response.text.splitlines():
-        if '||' in line and '^' in line:
-            domain = line.split('||')[1].split('^')[0].strip()
-            domains.add(domain)
-    return domains
-
-def cache_page(url):
-    """缓存网页内容到本地文件"""
-    response = requests.get(url)
-    response.raise_for_status()
-    cache_file = f'cache_{uuid.uuid4()}.html'
-    with open(cache_file, 'w', encoding='utf-8') as f:
-        f.write(response.text)
-    return cache_file
-
-def clear_cache(cache_file):
-    """删除缓存文件"""
-    if os.path.exists(cache_file):
-        os.remove(cache_file)
-
-def check_cloudflare_ip_via_bgp(domain):
-    """通过 bgp.he.net 查询域名对应的 IP 地址"""
-    try:
-        url = f'https://bgp.he.net/dns/{domain}#_ipinfo'
-        cache_file = cache_page(url)
-        with open(cache_file, 'r', encoding='utf-8') as f:
-            content = f.read()
-            ip_matches = re.findall(r'<a href="/ip/([\d\.a-fA-F:]+)" title="[\d\.a-fA-F:]+">', content)
-        clear_cache(cache_file)
-        return domain, set(ip_matches)
-    except Exception as e:
-        print(f"通过bgp.he.net检查 {domain} 时出错: {e}")
-    clear_cache(cache_file)
-    return None
-
-def is_ip_in_cloudflare(ip, cloudflare_cidrs):
-    """检查 IP 是否在 Cloudflare CIDR 范围内"""
-    ip_obj = ipaddress.ip_address(ip)
-    return any(ip_obj in cidr for cidr in cloudflare_cidrs)
-
-def process_domain(domain, cloudflare_cidrs):
-    """处理每个域名，查询其 IP 并检查是否属于 Cloudflare"""
-    result = check_cloudflare_ip_via_bgp(domain)
-    if result:
-        domain, ips = result
-        cloudflare_ips = {ip for ip in ips if is_ip_in_cloudflare(ip, cloudflare_cidrs)}
-        return domain, cloudflare_ips if cloudflare_ips else None
-    return None
+# ... 其他函数不变 ...
 
 def main():
     """主函数，执行查询和结果保存"""
@@ -132,6 +60,11 @@ def main():
             except Exception as e:
                 print(f"处理域名 {domain} 时出错: {e}")
 
+    # 保存匹配的域名（仅匹配到 Cloudflare 的域名）到文件
+    with open('优选域名.txt', 'w', encoding='utf-8') as f:
+        for domain in domain_ip_mapping.keys():
+            f.write(f"{domain}\n")
+
     # 分离IPv4和IPv6地址
     ipv4_addresses = set()
     ipv6_addresses = set()
@@ -150,11 +83,6 @@ def main():
     sorted_ipv4 = sorted(ipv4_addresses, key=lambda ip: ipaddress.IPv4Address(ip))
     sorted_ipv6 = sorted(ipv6_addresses, key=lambda ip: ipaddress.IPv6Address(ip))
 
-    # 保存优选域名（不带前缀）到文件
-    with open('优选域名.txt', 'w', encoding='utf-8') as f:
-        for domain in sorted(all_domains):
-            f.write(f"{domain}\n")
-
     # 保存匹配的 IP 到文件
     with open('优选域名ip.txt', 'w', encoding='utf-8') as f:
         for ip in sorted_ipv4:
@@ -162,15 +90,9 @@ def main():
         for ip in sorted_ipv6:
             f.write(f"{ip}\n")
 
-    # 保存命中的 IP 和对应的域名到文件
-    with open('命中Cloudflare域名和IP.txt', 'w', encoding='utf-8') as f:
-        for domain, ips in domain_ip_mapping.items():
-            f.write(f"{domain}: {', '.join(ips)}\n")
-
-    print(f"优选域名已保存到 优选域名.txt 文件中，共 {len(all_domains)} 个。")
+    print(f"优选域名已保存到 优选域名.txt 文件中，共 {len(domain_ip_mapping)} 个。")
     print(f"提取的 Cloudflare IP 已保存到 优选域名ip.txt 文件中，共 {len(sorted_ipv4) + len(sorted_ipv6)} 个。")
     print(f"其中 IPv4 地址 {len(sorted_ipv4)} 个，IPv6 地址 {len(sorted_ipv6)} 个。")
-    print(f"命中的 Cloudflare IP 和对应的域名已保存到 命中Cloudflare域名和IP.txt 文件中。")
 
 if __name__ == '__main__':
     main()
