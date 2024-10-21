@@ -1,98 +1,138 @@
 import requests
+import yaml
+from bs4 import BeautifulSoup
 import concurrent.futures
 import os
-import re
 import ipaddress
-import uuid
+import threading
+import random
+import time
+import re
 
-# 定义文件路径
-URLS_WITH_PREFIX = [
-    'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/Global/Global.list',
-]
-
-URLS_NORMAL_DOMAINS = [
+# 定义常量
+GROUP_1_URL = 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/Global/Global.list'
+GROUP_2_URLS = [
     'https://raw.githubusercontent.com/GuangYu-yu/About-Cloudflare/refs/heads/main/%E5%A4%A7%E9%87%8F%E4%BC%98%E9%80%89%E5%9F%9F%E5%90%8D.txt',
-    'https://github.com/Potterli20/file/releases/download/dns-hosts-all/dnshosts-all-domain-whitelist_full.txt',
+    'https://github.com/Potterli20/file/releases/download/dns-hosts-all/dnshosts-all-domain-whitelist_full.txt'
 ]
+GROUP_3_URL = 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/AdGuard/Advertising/Advertising.txt'
+CIDR_URL = 'https://raw.githubusercontent.com/GuangYu-yu/ACL4SSR/refs/heads/main/Clash/Cloudflare.txt'
 
-URLS_ADS = [
-    'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/AdGuard/Advertising/Advertising.txt',
-]
+# 初始化锁
+file_lock = threading.Lock()
 
-# ... 其他函数不变 ...
+def fetch_group_1():
+    print("正在获取第一组域名...")
+    response = requests.get(GROUP_1_URL)
+    response.raise_for_status()
+    domains = {}
+    for line in response.text.splitlines():
+        if line.startswith("DOMAIN") or line.startswith("DOMAIN-SUFFIX"):
+            parts = line.split(',')
+            if len(parts) == 2:
+                prefix, domain = parts
+                if domain not in domains:
+                    domains[domain] = {'prefix': prefix, 'ips': []}
+    return domains
+
+def fetch_group_2():
+    domains = {}
+    for url in GROUP_2_URLS:
+        print(f"正在获取第二组域名: {url}")
+        response = requests.get(url)
+        response.raise_for_status()
+        for line in response.text.splitlines():
+            domain = line.strip()
+            if domain and domain not in domains:
+                domains[domain] = {'prefix': '', 'ips': []}
+    return domains
+
+def fetch_group_3():
+    print("正在获取第三组域名...")
+    response = requests.get(GROUP_3_URL)
+    response.raise_for_status()
+    domains = {}
+    for line in response.text.splitlines():
+        # 提取||和^之间的域名
+        match = re.search(r'\|\|([^\^]+)\^', line)
+        if match:
+            domain = match.group(1)
+            if domain not in domains:
+                domains[domain] = {'prefix': '', 'ips': []}
+    return domains
+
+def query_ip_info(domain, retries=3):
+    for attempt in range(retries):
+        try:
+            time.sleep(random.uniform(3, 5))  # Delay of 3 to 5 seconds
+            query_url = f"https://bgp.he.net/dns/{domain}#_ipinfo"
+            response = requests.get(query_url)
+            response.raise_for_status()
+            soup = BeautifulSoup(response.text, 'html.parser')
+            ip_info_div = soup.find('div', id='ipinfo')
+            if ip_info_div:
+                ips = [a.get('title') for a in ip_info_div.find_all('a') if a.get('href', '').startswith('/ip/')]
+                return list(set(ips))  # 这里确保返回的IP去重
+            return []
+        except Exception:
+            continue  # 继续重试
+    return []  # 返回空列表
+
+def load_cidr_list():
+    print("加载 CIDR 列表...")
+    response = requests.get(CIDR_URL)
+    response.raise_for_status()
+    return response.text.splitlines()
+
+def is_ip_in_cidr(ip, cidr_list):
+    for cidr in cidr_list:
+        if '/' in cidr:
+            network = ipaddress.ip_network(cidr.strip())
+            if ipaddress.ip_address(ip) in network:
+                return True
+    return False
 
 def main():
-    """主函数，执行查询和结果保存"""
-    all_domains = set()
+    try:
+        print("脚本开始执行...")
+        
+        # 获取三组域名
+        domains_group_1 = fetch_group_1()
+        domains_group_2 = fetch_group_2()
+        domains_group_3 = fetch_group_3()
 
-    # 从带前缀的域名获取
-    for url in URLS_WITH_PREFIX:
-        all_domains.update(fetch_domains_with_prefix(url))
+        # 合并所有域名
+        all_domains = {**domains_group_1, **domains_group_2, **domains_group_3}
+        queried_domains = set()  # 记录已查询的域名
+        
+        with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
+            future_to_domain = {executor.submit(query_ip_info, domain): domain for domain in all_domains}
+            for future in concurrent.futures.as_completed(future_to_domain):
+                domain = future_to_domain[future]
+                queried_domains.add(domain)  # 添加到已查询列表
+                try:
+                    ips = future.result()
+                    if ips:
+                        all_domains[domain]['ips'].extend(ips)
+                except Exception:
+                    continue  # 忽略查询错误
 
-    # 从正常域名获取
-    for url in URLS_NORMAL_DOMAINS:
-        all_domains.update(fetch_normal_domains(url))
+        # 加载 CIDR 列表
+        cidr_list = load_cidr_list()
 
-    # 从广告域名获取
-    for url in URLS_ADS:
-        all_domains.update(fetch_ads_domains(url))
+        # 保存优选域名和优选域名IP
+        with open('优选域名.txt', 'w') as f_domains, open('优选域名ip.txt', 'w') as f_ips:
+            for domain, data in all_domains.items():
+                for ip in data['ips']:
+                    if is_ip_in_cidr(ip, cidr_list):
+                        f_domains.write(f"{domain}\n")
+                        f_ips.write(f"{ip}\n")
+                        break  # 找到一个匹配后跳出循环
 
-    # 获取 Cloudflare CIDR 列表
-    cloudflare_cidrs_url = 'https://raw.githubusercontent.com/GuangYu-yu/ACL4SSR/refs/heads/main/Clash/Cloudflare.txt'
-    response = requests.get(cloudflare_cidrs_url)
-    cloudflare_cidrs = [ipaddress.ip_network(cidr.strip()) for cidr in response.text.splitlines() if cidr.strip()]
+        print(f"匹配到的优选域名数量: {len(all_domains)}")
 
-    all_cloudflare_ips = set()
-    domain_ip_mapping = {}
-
-    # 并发查询所有域名对应的 IP
-    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-        futures = {executor.submit(process_domain, domain, cloudflare_cidrs): domain for domain in all_domains}
-        for future in concurrent.futures.as_completed(futures):
-            domain = futures[future]
-            try:
-                result = future.result()
-                if result:
-                    domain, cloudflare_ips = result
-                    if cloudflare_ips:
-                        all_cloudflare_ips.update(cloudflare_ips)
-                        domain_ip_mapping[domain] = cloudflare_ips
-            except Exception as e:
-                print(f"处理域名 {domain} 时出错: {e}")
-
-    # 保存匹配的域名（仅匹配到 Cloudflare 的域名）到文件
-    with open('优选域名.txt', 'w', encoding='utf-8') as f:
-        for domain in domain_ip_mapping.keys():
-            f.write(f"{domain}\n")
-
-    # 分离IPv4和IPv6地址
-    ipv4_addresses = set()
-    ipv6_addresses = set()
-
-    for ip in all_cloudflare_ips:
-        try:
-            ip_obj = ipaddress.ip_address(ip)
-            if ip_obj.version == 4:
-                ipv4_addresses.add(ip)
-            else:
-                ipv6_addresses.add(ip.lower())
-        except ValueError:
-            print(f"无效的IP地址: {ip}")
-
-    # 分别排序IPv4和IPv6地址
-    sorted_ipv4 = sorted(ipv4_addresses, key=lambda ip: ipaddress.IPv4Address(ip))
-    sorted_ipv6 = sorted(ipv6_addresses, key=lambda ip: ipaddress.IPv6Address(ip))
-
-    # 保存匹配的 IP 到文件
-    with open('优选域名ip.txt', 'w', encoding='utf-8') as f:
-        for ip in sorted_ipv4:
-            f.write(f"{ip}\n")
-        for ip in sorted_ipv6:
-            f.write(f"{ip}\n")
-
-    print(f"优选域名已保存到 优选域名.txt 文件中，共 {len(domain_ip_mapping)} 个。")
-    print(f"提取的 Cloudflare IP 已保存到 优选域名ip.txt 文件中，共 {len(sorted_ipv4) + len(sorted_ipv6)} 个。")
-    print(f"其中 IPv4 地址 {len(sorted_ipv4)} 个，IPv6 地址 {len(sorted_ipv6)} 个。")
+    except Exception as e:
+        print(f"发生错误: {e}")
 
 if __name__ == '__main__':
     main()
