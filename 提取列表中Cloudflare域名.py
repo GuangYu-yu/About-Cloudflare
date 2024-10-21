@@ -136,11 +136,26 @@ def main():
         for domain in sorted(all_domains):
             f.write(f"{domain}\n")
 
-    # 保存所有 Cloudflare IP 地址到文件
-    with open('优选域名ip.txt', 'w', encoding='utf-8') as f:
-        for ip in sorted_ipv4:
+# 获取 Cloudflare CIDR 列表并转换为 ip_network 对象
+cloudflare_cidrs_url = 'https://raw.githubusercontent.com/GuangYu-yu/ACL4SSR/refs/heads/main/Clash/Cloudflare.txt'
+response = requests.get(cloudflare_cidrs_url)
+cloudflare_cidrs = [ipaddress.ip_network(cidr.strip()) for cidr in response.text.splitlines() if cidr.strip()]
+
+# 检查 IP 是否在 Cloudflare CIDR 范围内
+def is_ip_in_cloudflare(ip):
+    ip_obj = ipaddress.ip_address(ip)
+    return any(ip_obj in cidr for cidr in cloudflare_cidrs)
+
+# 保存匹配的 IP 到文件
+with open('优选域名ip.txt', 'w', encoding='utf-8') as f:
+    # 过滤并保存匹配的 IPv4 地址
+    for ip in sorted_ipv4:
+        if is_ip_in_cloudflare(ip):
             f.write(f"{ip}\n")
-        for ip in sorted_ipv6:
+    
+    # 过滤并保存匹配的 IPv6 地址
+    for ip in sorted_ipv6:
+        if is_ip_in_cloudflare(ip):
             f.write(f"{ip}\n")
 
     print(f"优选域名已保存到 优选域名.txt 文件中，共 {len(all_domains)} 个。")
