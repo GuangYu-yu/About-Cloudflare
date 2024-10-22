@@ -3,11 +3,12 @@ name: 手动运行列表过滤脚本
 on:
   workflow_dispatch: # 手动触发
   schedule:
-    - cron: "0 16 */3 * *"  # 每天3天16点运行一次
+    - cron: "0 16 */3 * *"  # 每3天16点运行一次 
 
 jobs:
   run-script:
     runs-on: ubuntu-latest
+    timeout-minutes: 720  # 设置超时时间为12小时
 
     steps:
       - name: 检查出代码库
