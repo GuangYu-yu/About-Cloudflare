@@ -35,9 +35,17 @@ async def fetch_domains():
         # 合并去重
         all_domains = list(set(group1_domains + group2_domains + group3_domains))
 
-        # 保存到临时文件
-        with open(TEMP_DOMAINS_FILE, 'w') as f:
-            f.write('\n'.join(all_domains))
+        # 将域名列表分割成多个部分
+        query_methods = ['bgp', 'cloudflare', 'google', 'quad9', 'opendns', 'twnic']
+        domains_per_method = len(all_domains) // len(query_methods)
+        
+        for i, method in enumerate(query_methods):
+            start = i * domains_per_method
+            end = start + domains_per_method if i < len(query_methods) - 1 else len(all_domains)
+            method_domains = all_domains[start:end]
+            
+            with open(f'domains_{method}.txt', 'w') as f:
+                f.write('\n'.join(method_domains))
 
         return all_domains
 
