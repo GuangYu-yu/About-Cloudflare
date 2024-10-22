@@ -65,7 +65,7 @@ async def process_domains(domains, query_func, semaphore):
     return results
 
 async def main(query_method):
-    with open('temp_domains.txt', 'r') as f:
+    with open(f'domains_{query_method}.txt', 'r') as f:
         domains = f.read().splitlines()
 
     semaphore = asyncio.Semaphore(5)  # 限制并发查询数为5
