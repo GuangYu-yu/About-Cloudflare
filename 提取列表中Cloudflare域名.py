@@ -1,15 +1,13 @@
-import requests
-import yaml
+import aiohttp
+import asyncio
+
 from bs4 import BeautifulSoup
-import concurrent.futures
 import os
 import ipaddress
-import threading
 import random
-import time
 import re
-import argparse
-import json
+
+from collections import defaultdict
 
 # 定义常量
 GROUP_1_URL = 'https://raw.githubusercontent.com/GuangYu-yu/ACL4SSR/refs/heads/main/matching_domains.list'
@@ -19,147 +17,130 @@ GROUP_2_URLS = [
 ]
 GROUP_3_URL = 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/AdGuard/Advertising/Advertising.txt'
 CIDR_URL = 'https://raw.githubusercontent.com/GuangYu-yu/ACL4SSR/refs/heads/main/Clash/Cloudflare.txt'
-TEMP_YAML_FILE = 'temp_domains.yaml'
 CACHED_CIDR_FILE = 'cached_cidr.txt'
 
-# 初始化锁
-file_lock = threading.Lock()
+async def fetch(session, url):
+    async with session.get(url) as response:
+        return await response.text()
 
-def fetch_group_1():
+async def fetch_group_1(session):
     print("正在获取第一组域名...")
-    response = requests.get(GROUP_1_URL)
-    response.raise_for_status()
+    text = await fetch(session, GROUP_1_URL)
     domains = {}
-    for line in response.text.splitlines():
+    for line in text.splitlines():
         if line.startswith("DOMAIN") or line.startswith("DOMAIN-SUFFIX"):
             parts = line.split(',')
             if len(parts) == 2:
                 prefix, domain = parts
                 if domain not in domains:
-                    domains[domain] = {'prefix': prefix, 'ips': []}
+                    domains[domain] = {'prefix': prefix, 'ips': set()}
     return domains
 
-def fetch_group_2():
+async def fetch_group_2(session):
     domains = {}
     for url in GROUP_2_URLS:
         print(f"正在获取第二组域名: {url}")
-        response = requests.get(url)
-        response.raise_for_status()
-        for line in response.text.splitlines():
+        text = await fetch(session, url)
+        for line in text.splitlines():
             domain = line.strip()
             if domain and domain not in domains:
-                domains[domain] = {'prefix': '', 'ips': []}
+                domains[domain] = {'prefix': '', 'ips': set()}
     return domains
 
-def fetch_group_3():
+async def fetch_group_3(session):
     print("正在获取第三组域名...")
-    response = requests.get(GROUP_3_URL)
-    response.raise_for_status()
+    text = await fetch(session, GROUP_3_URL)
     domains = {}
-    for line in response.text.splitlines():
+    for line in text.splitlines():
         match = re.search(r'\|\|([^\^]+)\^', line)
         if match:
             domain = match.group(1)
             if domain not in domains:
-                domains[domain] = {'prefix': '', 'ips': []}
+                domains[domain] = {'prefix': '', 'ips': set()}
     return domains
 
-def query_ip_info(domain, retries=3):
-    for attempt in range(retries):
-        try:
-            time.sleep(random.uniform(3, 5))  # Delay of 3 to 5 seconds
-            query_url = f"https://bgp.he.net/dns/{domain}#_ipinfo"
-            response = requests.get(query_url)
-            response.raise_for_status()
-            soup = BeautifulSoup(response.text, 'html.parser')
-            ip_info_div = soup.find('div', id='ipinfo')
-            if ip_info_div:
-                ips = [a.get('title') for a in ip_info_div.find_all('a') if a.get('href', '').startswith('/ip/')]
-                return list(set(ips))  # 确保返回的IP去重
-            return []
-        except Exception:
-            continue  # 继续重试
-    return []  # 返回空列表
+async def query_ip_info(session, domain):
+    await asyncio.sleep(random.uniform(1, 3))  # 减少延迟时间
+    query_url = f"https://bgp.he.net/dns/{domain}#_ipinfo"
+    async with session.get(query_url) as response:
+        text = await response.text()
+    soup = BeautifulSoup(text, 'html.parser')
+    ip_info_div = soup.find('div', id='ipinfo')
+    if ip_info_div:
+        return {a.get('title') for a in ip_info_div.find_all('a') if a.get('href', '').startswith('/ip/')}
+    return set()
 
-def load_cidr_list():
-    print("加载 CIDR 列表...")
-    response = requests.get(CIDR_URL)
-    response.raise_for_status()
-    return response.text.splitlines()
+async def load_and_cache_cidr_list(session):
+    print("下载并缓存 CIDR 列表...")
+    text = await fetch(session, CIDR_URL)
+    cidr_list = text.splitlines()
+    
+    with open(CACHED_CIDR_FILE, 'w') as f:
+        for cidr in cidr_list:
+            f.write(f"{cidr}\n")
+    
+    return cidr_list
 
-def save_temp_yaml(domains):
-    """将整个域名和IP数据写入临时YAML文件。"""
-    with open(TEMP_YAML_FILE, 'w') as f:
-        yaml.dump(domains, f)
+def load_cached_cidr_list():
+    print("从缓存加载 CIDR 列表...")
+    with open(CACHED_CIDR_FILE, 'r') as f:
+        return f.read().splitlines()
 
 def is_ip_in_cidr(ip, cidr_list):
-    for cidr in cidr_list:
-        if '/' in cidr:
-            network = ipaddress.ip_network(cidr.strip(), strict=False)
-            if ipaddress.ip_address(ip) in network:
-                return True
-    return False
+    ip_obj = ipaddress.ip_address(ip)
+    return any(ip_obj in ipaddress.ip_network(cidr.strip(), strict=False) for cidr in cidr_list if '/' in cidr)
 
-def main(part):
+async def main():
     try:
-        print(f"脚本开始执行第{part}部分...")
+        print("脚本开始执行...")
         
-        if part == 1:
+        async with aiohttp.ClientSession() as session:
+            # 下载并缓存 CIDR 列表
+            await load_and_cache_cidr_list(session)
+
             # 获取三组域名
-            domains_group_1 = fetch_group_1()
-            domains_group_2 = fetch_group_2()
-            domains_group_3 = fetch_group_3()
+            domains_group_1 = await fetch_group_1(session)
+            domains_group_2 = await fetch_group_2(session)
+            domains_group_3 = await fetch_group_3(session)
 
             # 合并所有域名
             all_domains = {**domains_group_1, **domains_group_2, **domains_group_3}
-            queried_domains = set()  # 记录已查询的域名
             
-            with concurrent.futures.ThreadPoolExecutor(max_workers=50) as executor:
-                future_to_domain = {executor.submit(query_ip_info, domain): domain for domain in all_domains}
-                for future in concurrent.futures.as_completed(future_to_domain):
-                    domain = future_to_domain[future]
-                    queried_domains.add(domain)  # 添加到已查询列表
-                    try:
-                        ips = future.result()
-                        if ips:
-                            all_domains[domain]['ips'].extend(ips)
-                            # 实时写入临时 YAML 文件
-                            save_temp_yaml(all_domains)
-                    except Exception:
-                        continue  # 忽略查询错误
+            # 异步查询 IP 信息
+            tasks = [query_ip_info(session, domain) for domain in all_domains]
+            results = await asyncio.gather(*tasks)
+            
+            for domain, ips in zip(all_domains, results):
+                all_domains[domain]['ips'] = ips
 
-            # 保存中间结果
-            with open('intermediate_results.json', 'w') as f:
-                json.dump(all_domains, f)
+            # 添加日志记录
+            print(f"总域名数量: {len(all_domains)}")
+            print(f"查询到IP的域名数量: {sum(1 for domain in all_domains.values() if domain['ips'])}")
 
-        elif part == 2:
-            # 加载中间结果
-            with open('intermediate_results.json', 'r') as f:
-                all_domains = json.load(f)
-
-            # 加载 CIDR 列表
-            cidr_list = load_cidr_list()
-            with open(CACHED_CIDR_FILE, 'w') as f:
-                for cidr in cidr_list:
-                    f.write(f"{cidr}\n")
+            # 从缓存加载 CIDR 列表
+            cidr_list = load_cached_cidr_list()
 
             # 保存优选域名和优选域名IP
-            优选域名 = sorted(all_domains.keys())  # 对域名进行排序
+            优选域名 = set()
             ipv4_set = set()
             ipv6_set = set()
 
-            with open('优选域名.txt', 'w') as f_domains:
-                for domain, data in all_domains.items():
-                    for ip in data['ips']:
-                        if is_ip_in_cidr(ip, cidr_list):
-                            f_domains.write(f"{domain}\n")
-                            if ':' in ip:  # IPv6
-                                ipv6_set.add(ip)
-                            else:  # IPv4
-                                ipv4_set.add(ip)
-                            break  # 找到一个匹配后跳出循环
+            for domain, data in all_domains.items():
+                for ip in data['ips']:
+                    if is_ip_in_cidr(ip, cidr_list):
+                        优选域名.add(domain)
+                        if ':' in ip:  # IPv6
+                            ipv6_set.add(ip)
+                        else:  # IPv4
+                            ipv4_set.add(ip)
+                        break  # 找到一个匹配后跳出循环
 
-            # 写入优选域名IP，分别处理IPv4和IPv6
+            # 写入优选域名
+            with open('优选域名.txt', 'w') as f_domains:
+                for domain in sorted(优选域名):
+                    f_domains.write(f"{domain}\n")
+
+            # 写入优选域名IP
             with open('优选域名ip.txt', 'w') as f_ips:
                 for ip in sorted(ipv4_set):
                     f_ips.write(f"{ip}\n")
@@ -167,18 +148,21 @@ def main(part):
                     f_ips.write(f"{ip}\n")
 
             print(f"匹配到的优选域名数量: {len(优选域名)}")
+            print(f"优选IPv4地址数量: {len(ipv4_set)}")
+            print(f"优选IPv6地址数量: {len(ipv6_set)}")
 
-            # 删除临时 YAML 文件和缓存的 CIDR 文件
-            if os.path.exists(TEMP_YAML_FILE):
-                os.remove(TEMP_YAML_FILE)
-            if os.path.exists(CACHED_CIDR_FILE):
-                os.remove(CACHED_CIDR_FILE)
+            # 添加结果验证
+            total_ips = len(ipv4_set) + len(ipv6_set)
+            if len(优选域名) == 0 or total_ips == 0:
+                print("警告：没有找到优选域名或IP地址，请检查处理逻辑")
 
     except Exception as e:
         print(f"发生错误: {e}")
+    finally:
+        # 删除缓存的 CIDR 文件
+        if os.path.exists(CACHED_CIDR_FILE):
+            os.remove(CACHED_CIDR_FILE)
+            print("已删除缓存的 CIDR 文件")
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--part', type=int, choices=[1, 2], required=True)
-    args = parser.parse_args()
-    main(args.part)
+    asyncio.run(main())
