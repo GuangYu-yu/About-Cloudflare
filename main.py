@@ -3,7 +3,7 @@ import aiohttp
 import ipaddress
 import os
 from fetch_domains import fetch_domains
-from query_ip import query_bgp, query_dns_google
+from query_ip import query_ip
 
 # 定义URL常量
 CIDR_URL = 'https://raw.githubusercontent.com/GuangYu-yu/ACL4SSR/refs/heads/main/Clash/Cloudflare.txt'
@@ -32,26 +32,25 @@ async def process_domains(domains, query_func, semaphore):
     
     return results
 
-async def main():
+def main():
     # 获取域名列表
     domains = await fetch_domains()
     
-    # 将域名列表按1:2的比例分为两部分
-    google_domains = domains[:len(domains) // 3]
-    bgp_domains = domains[len(domains) // 3:]
-
-    # 创建两个任务
-    semaphore_bgp = asyncio.Semaphore(10)  # BGP查询限制为10个并发
-    semaphore_dns = asyncio.Semaphore(5)   # DNS查询限制为5个并发
-    task1 = asyncio.create_task(process_domains(google_domains, query_dns_google, semaphore_dns))
-    task2 = asyncio.create_task(process_domains(bgp_domains, query_bgp, semaphore_bgp))
-
-    # 等待两个任务完成
-    results1, results2 = await asyncio.gather(task1, task2)
-
-    # 合并结果
-    all_results = results1 + results2
-
+    query_methods = config['query_methods']
+    total_domains = len(domains)
+    domains_per_method = total_domains // len(query_methods)
+    
+    results = []
+    for i, method in enumerate(query_methods):
+        start = i * domains_per_method
+        end = start + domains_per_method if i < len(query_methods) - 1 else total_domains
+        method_domains = domains[start:end]
+        
+        for domain in method_domains:
+            ip = query_ip(domain, method)
+            if ip:
+                results.append((domain, ip))
+    
     # 获取CIDR列表
     async with aiohttp.ClientSession() as session:
         cidr_content = await fetch_url(session, CIDR_URL)
@@ -61,7 +60,7 @@ async def main():
     optimized_domains = set()
     optimized_ips = set()
 
-    for domain, ip in all_results:
+    for domain, ip in results:
         try:
             ip_obj = ipaddress.ip_address(ip)
             if any(ip_obj in cidr for cidr in cidr_list):
@@ -81,4 +80,4 @@ async def main():
     os.remove(TEMP_DOMAINS_FILE)
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
