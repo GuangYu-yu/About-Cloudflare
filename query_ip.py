@@ -65,8 +65,16 @@ async def process_domains(domains, query_func, semaphore):
     return results
 
 async def main(query_method):
-    with open(f'domains_{query_method}.txt', 'r') as f:
-        domains = f.read().splitlines()
+    with open('temp_domains.txt', 'r') as f:
+        all_domains = f.read().splitlines()
+
+    # 根据查询方法选择域名子集
+    query_methods = ['bgp', 'cloudflare', 'google', 'quad9', 'opendns', 'twnic']
+    method_index = query_methods.index(query_method)
+    domains_per_method = len(all_domains) // len(query_methods)
+    start = method_index * domains_per_method
+    end = start + domains_per_method if method_index < len(query_methods) - 1 else len(all_domains)
+    domains = all_domains[start:end]
 
     semaphore = asyncio.Semaphore(5)  # 限制并发查询数为5
 
