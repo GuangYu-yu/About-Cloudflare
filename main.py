@@ -8,9 +8,6 @@ from query_ip import query_ip
 # 定义URL常量
 CIDR_URL = 'https://raw.githubusercontent.com/GuangYu-yu/ACL4SSR/refs/heads/main/Clash/Cloudflare.txt'
 
-# 临时文件名
-TEMP_DOMAINS_FILE = 'temp_domains.txt'
-
 # 结果文件名
 OPTIMIZED_DOMAINS_FILE = '优选域名.txt'
 OPTIMIZED_IPS_FILE = '优选域名ip.txt'
@@ -18,19 +15,6 @@ OPTIMIZED_IPS_FILE = '优选域名ip.txt'
 async def fetch_url(session, url):
     async with session.get(url) as response:
         return await response.text()
-
-async def process_domains(domains, query_func, semaphore):
-    results = []
-    async with aiohttp.ClientSession() as session:
-        async def worker(domain):
-            async with semaphore:
-                ips = await query_func(session, domain)
-                results.extend((domain, ip) for ip in ips)
-
-        tasks = [asyncio.create_task(worker(domain)) for domain in domains]
-        await asyncio.gather(*tasks)
-    
-    return results
 
 async def main():
     # 获取并分割域名列表
