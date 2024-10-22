@@ -71,10 +71,19 @@ async def main(query_method):
     # 根据查询方法选择域名子集
     query_methods = ['bgp', 'cloudflare', 'google', 'quad9', 'opendns', 'twnic']
     method_index = query_methods.index(query_method)
-    domains_per_method = len(all_domains) // len(query_methods)
-    start = method_index * domains_per_method
-    end = start + domains_per_method if method_index < len(query_methods) - 1 else len(all_domains)
+    total_domains = len(all_domains)
+    domains_per_method = total_domains // len(query_methods)
+    remainder = total_domains % len(query_methods)
+
+    start = method_index * domains_per_method + min(method_index, remainder)
+    if method_index < remainder:
+        end = start + domains_per_method + 1
+    else:
+        end = start + domains_per_method
+
     domains = all_domains[start:end]
+
+    print(f"Processing {len(domains)} domains for method: {query_method}")
 
     semaphore = asyncio.Semaphore(5)  # 限制并发查询数为5
 
