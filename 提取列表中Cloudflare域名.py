@@ -8,6 +8,8 @@ import threading
 import random
 import time
 import re
+import argparse
+import json
 
 # 定义常量
 GROUP_1_URL = 'https://raw.githubusercontent.com/GuangYu-yu/ACL4SSR/refs/heads/main/matching_domains.list'
@@ -98,72 +100,85 @@ def is_ip_in_cidr(ip, cidr_list):
                 return True
     return False
 
-def main():
+def main(part):
     try:
-        print("脚本开始执行...")
+        print(f"脚本开始执行第{part}部分...")
         
-        # 获取三组域名
-        domains_group_1 = fetch_group_1()
-        domains_group_2 = fetch_group_2()
-        domains_group_3 = fetch_group_3()
+        if part == 1:
+            # 获取三组域名
+            domains_group_1 = fetch_group_1()
+            domains_group_2 = fetch_group_2()
+            domains_group_3 = fetch_group_3()
 
-        # 合并所有域名
-        all_domains = {**domains_group_1, **domains_group_2, **domains_group_3}
-        queried_domains = set()  # 记录已查询的域名
-        
-        with concurrent.futures.ThreadPoolExecutor(max_workers=50) as executor:
-            future_to_domain = {executor.submit(query_ip_info, domain): domain for domain in all_domains}
-            for future in concurrent.futures.as_completed(future_to_domain):
-                domain = future_to_domain[future]
-                queried_domains.add(domain)  # 添加到已查询列表
-                try:
-                    ips = future.result()
-                    if ips:
-                        all_domains[domain]['ips'].extend(ips)
-                        # 实时写入临时 YAML 文件
-                        save_temp_yaml(all_domains)
-                except Exception:
-                    continue  # 忽略查询错误
+            # 合并所有域名
+            all_domains = {**domains_group_1, **domains_group_2, **domains_group_3}
+            queried_domains = set()  # 记录已查询的域名
+            
+            with concurrent.futures.ThreadPoolExecutor(max_workers=50) as executor:
+                future_to_domain = {executor.submit(query_ip_info, domain): domain for domain in all_domains}
+                for future in concurrent.futures.as_completed(future_to_domain):
+                    domain = future_to_domain[future]
+                    queried_domains.add(domain)  # 添加到已查询列表
+                    try:
+                        ips = future.result()
+                        if ips:
+                            all_domains[domain]['ips'].extend(ips)
+                            # 实时写入临时 YAML 文件
+                            save_temp_yaml(all_domains)
+                    except Exception:
+                        continue  # 忽略查询错误
 
-        # 加载 CIDR 列表
-        cidr_list = load_cidr_list()
-        with open(CACHED_CIDR_FILE, 'w') as f:
-            for cidr in cidr_list:
-                f.write(f"{cidr}\n")
+            # 保存中间结果
+            with open('intermediate_results.json', 'w') as f:
+                json.dump(all_domains, f)
 
-        # 保存优选域名和优选域名IP
-        优选域名 = sorted(all_domains.keys())  # 对域名进行排序
-        ipv4_set = set()
-        ipv6_set = set()
+        elif part == 2:
+            # 加载中间结果
+            with open('intermediate_results.json', 'r') as f:
+                all_domains = json.load(f)
 
-        with open('优选域名.txt', 'w') as f_domains:
-            for domain, data in all_domains.items():
-                for ip in data['ips']:
-                    if is_ip_in_cidr(ip, cidr_list):
-                        f_domains.write(f"{domain}\n")
-                        if ':' in ip:  # IPv6
-                            ipv6_set.add(ip)
-                        else:  # IPv4
-                            ipv4_set.add(ip)
-                        break  # 找到一个匹配后跳出循环
+            # 加载 CIDR 列表
+            cidr_list = load_cidr_list()
+            with open(CACHED_CIDR_FILE, 'w') as f:
+                for cidr in cidr_list:
+                    f.write(f"{cidr}\n")
 
-        # 写入优选域名IP，分别处理IPv4和IPv6
-        with open('优选域名ip.txt', 'w') as f_ips:
-            for ip in sorted(ipv4_set):
-                f_ips.write(f"{ip}\n")
-            for ip in sorted(ipv6_set):
-                f_ips.write(f"{ip}\n")
+            # 保存优选域名和优选域名IP
+            优选域名 = sorted(all_domains.keys())  # 对域名进行排序
+            ipv4_set = set()
+            ipv6_set = set()
 
-        print(f"匹配到的优选域名数量: {len(优选域名)}")
+            with open('优选域名.txt', 'w') as f_domains:
+                for domain, data in all_domains.items():
+                    for ip in data['ips']:
+                        if is_ip_in_cidr(ip, cidr_list):
+                            f_domains.write(f"{domain}\n")
+                            if ':' in ip:  # IPv6
+                                ipv6_set.add(ip)
+                            else:  # IPv4
+                                ipv4_set.add(ip)
+                            break  # 找到一个匹配后跳出循环
 
-        # 删除临时 YAML 文件和缓存的 CIDR 文件
-        if os.path.exists(TEMP_YAML_FILE):
-            os.remove(TEMP_YAML_FILE)
-        if os.path.exists(CACHED_CIDR_FILE):
-            os.remove(CACHED_CIDR_FILE)
+            # 写入优选域名IP，分别处理IPv4和IPv6
+            with open('优选域名ip.txt', 'w') as f_ips:
+                for ip in sorted(ipv4_set):
+                    f_ips.write(f"{ip}\n")
+                for ip in sorted(ipv6_set):
+                    f_ips.write(f"{ip}\n")
+
+            print(f"匹配到的优选域名数量: {len(优选域名)}")
+
+            # 删除临时 YAML 文件和缓存的 CIDR 文件
+            if os.path.exists(TEMP_YAML_FILE):
+                os.remove(TEMP_YAML_FILE)
+            if os.path.exists(CACHED_CIDR_FILE):
+                os.remove(CACHED_CIDR_FILE)
 
     except Exception as e:
         print(f"发生错误: {e}")
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--part', type=int, choices=[1, 2], required=True)
+    args = parser.parse_args()
+    main(args.part)
