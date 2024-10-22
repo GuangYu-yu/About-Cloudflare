@@ -1,12 +1,12 @@
-name: 列表过滤脚本
+name: 优选域名和IP
 
 on:
-  workflow_dispatch:
   schedule:
     - cron: "0 16 */3 * *"
+  workflow_dispatch:  # 允许手动触发
 
 jobs:
-  run-script:
+  fetch_domains:
     runs-on: ubuntu-latest
     steps:
       - name: 检查出代码库
@@ -20,26 +20,78 @@ jobs:
       - name: 安装依赖
         run: |
           python -m pip install --upgrade pip
-          pip install aiohttp beautifulsoup4 lxml
+          pip install aiohttp
 
-      - name: 运行列表过滤脚本
+      - name: 获取域名列表
+        run: python fetch_domains.py
+
+      - name: 上传域名列表
+        uses: actions/upload-artifact@v3
+        with:
+          name: domain-list
+          path: temp_domains.txt
+
+  query_ips:
+    needs: fetch_domains
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        query_method: [bgp, dns_google, cloudflare]
+    steps:
+      - name: 检查出代码库
+        uses: actions/checkout@v3
+
+      - name: 设置 Python 环境
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: 安装依赖
         run: |
-          python 提取列表中Cloudflare域名.py
+          python -m pip install --upgrade pip
+          pip install aiohttp beautifulsoup4
 
-      - name: 检查是否有更改
+      - name: 下载域名列表
+        uses: actions/download-artifact@v3
+        with:
+          name: domain-list
+
+      - name: 查询IP地址
+        run: python query_ip.py ${{ matrix.query_method }}
+
+      - name: 上传查询结果
+        uses: actions/upload-artifact@v3
+        with:
+          name: ip-results-${{ matrix.query_method }}
+          path: ip_results_${{ matrix.query_method }}.txt
+
+  optimize_results:
+    needs: query_ips
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检查出代码库
+        uses: actions/checkout@v3
+
+      - name: 设置 Python 环境
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: 安装依赖
         run: |
-          git add .
-          if git diff --cached --quiet; then
-            echo "没有需要提交的更改"
-            exit 0
-          fi
+          python -m pip install --upgrade pip
+          pip install aiohttp
 
-      - name: 提交并推送更改
-        if: success()
+      - name: 下载所有查询结果
+        uses: actions/download-artifact@v3
+
+      - name: 优化结果
+        run: python optimize_results.py
+
+      - name: 提交更改
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git commit -m "下载并处理文件于 $(date '+%Y/%m/%d %H:%M:%S')" || echo "没有需要提交的更改，跳过提交。"
-          git pull --rebase
-          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
-          git push || echo "没有需要推送的更改，跳过推送。"
+          git add 优选域名.txt 优选域名ip.txt
+          git commit -m "更新优选域名和IP" || echo "No changes to commit"
+          git push
