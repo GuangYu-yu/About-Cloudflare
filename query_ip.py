@@ -77,7 +77,7 @@ async def main(query_method):
     elif query_method in ['twnic', 'quad9', 'opendns', 'cloudflare']:
         nameservers = {
             'twnic': '101.101.101.101',
-            'quad9': '9.9.9.9',
+            'quad9': '9.9.9.10',
             'opendns': '208.67.222.222',
             'cloudflare': '1.1.1.1'
         }
