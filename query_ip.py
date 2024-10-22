@@ -72,7 +72,7 @@ async def main(query_method):
 
     if query_method == 'bgp':
         results = await process_domains(domains, query_bgp, semaphore)
-    elif query_method == 'dns_google':
+    elif query_method == 'google':
         results = await process_domains(domains, query_dns_google, semaphore)
     elif query_method in ['twnic', 'quad9', 'opendns', 'cloudflare']:
         nameservers = {
