@@ -3,7 +3,7 @@ import aiohttp
 import ipaddress
 import os
 from fetch_domains import fetch_domains
-from query_ip import query_bgp, query_dns_google, query_cloudflare
+from query_ip import query_bgp, query_dns_google
 
 # 定义URL常量
 CIDR_URL = 'https://raw.githubusercontent.com/GuangYu-yu/ACL4SSR/refs/heads/main/Clash/Cloudflare.txt'
@@ -36,22 +36,21 @@ async def main():
     # 获取域名列表
     domains = await fetch_domains()
     
-    # 将域名列表平分为三部分
-    chunk_size = len(domains) // 3
-    domains1, domains2, domains3 = domains[:chunk_size], domains[chunk_size:2*chunk_size], domains[2*chunk_size:]
+    # 将域名列表按1:2的比例分为两部分
+    google_domains = domains[:len(domains) // 3]
+    bgp_domains = domains[len(domains) // 3:]
 
-    # 创建三个任务
+    # 创建两个任务
     semaphore_bgp = asyncio.Semaphore(10)  # BGP查询限制为10个并发
     semaphore_dns = asyncio.Semaphore(5)   # DNS查询限制为5个并发
-    task1 = asyncio.create_task(process_domains(domains1, query_bgp, semaphore_bgp))
-    task2 = asyncio.create_task(process_domains(domains2, query_dns_google, semaphore_dns))
-    task3 = asyncio.create_task(process_domains(domains3, query_cloudflare, semaphore_dns))
+    task1 = asyncio.create_task(process_domains(google_domains, query_dns_google, semaphore_dns))
+    task2 = asyncio.create_task(process_domains(bgp_domains, query_bgp, semaphore_bgp))
 
-    # 等待三个任务完成
-    results1, results2, results3 = await asyncio.gather(task1, task2, task3)
+    # 等待两个任务完成
+    results1, results2 = await asyncio.gather(task1, task2)
 
     # 合并结果
-    all_results = results1 + results2 + results3
+    all_results = results1 + results2
 
     # 获取CIDR列表
     async with aiohttp.ClientSession() as session:
