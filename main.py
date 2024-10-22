@@ -32,24 +32,17 @@ async def process_domains(domains, query_func, semaphore):
     
     return results
 
-def main():
-    # 获取域名列表
-    domains = await fetch_domains()
+async def main():
+    # 获取并分割域名列表
+    await fetch_domains()
     
-    query_methods = config['query_methods']
-    total_domains = len(domains)
-    domains_per_method = total_domains // len(query_methods)
+    query_methods = ['bgp', 'cloudflare', 'google', 'quad9', 'opendns', 'twnic']
     
     results = []
-    for i, method in enumerate(query_methods):
-        start = i * domains_per_method
-        end = start + domains_per_method if i < len(query_methods) - 1 else total_domains
-        method_domains = domains[start:end]
-        
-        for domain in method_domains:
-            ip = query_ip(domain, method)
-            if ip:
-                results.append((domain, ip))
+    for method in query_methods:
+        with open(f'ip_results_{method}.txt', 'r') as f:
+            method_results = [line.strip().split(',') for line in f]
+            results.extend(method_results)
     
     # 获取CIDR列表
     async with aiohttp.ClientSession() as session:
@@ -76,8 +69,10 @@ def main():
     with open(OPTIMIZED_IPS_FILE, 'w') as f:
         f.write('\n'.join(sorted(optimized_ips)))
 
-    # 删除临时文件
-    os.remove(TEMP_DOMAINS_FILE)
+    # 清理临时文件
+    for method in query_methods:
+        os.remove(f'domains_{method}.txt')
+        os.remove(f'ip_results_{method}.txt')
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
