@@ -9,7 +9,7 @@ import dns.resolver
 async def query_with_rate_limit(func, *args):
     while True:
         try:
-            await asyncio.sleep(random.uniform(1, 3))
+            await asyncio.sleep(random.uniform(1, 2))
             return await func(*args)
         except Exception as e:
             print(f"查询失败: {e}")
