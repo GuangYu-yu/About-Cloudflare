@@ -8,7 +8,6 @@ on:
 jobs:
   run-script:
     runs-on: ubuntu-latest
-    timeout-minutes: 720  # 设置超时时间为12小时
 
     steps:
       - name: 检查出代码库
