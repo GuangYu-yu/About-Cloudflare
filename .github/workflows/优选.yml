@@ -28,7 +28,7 @@ jobs:
           python 提取列表中Cloudflare域名.py --part 1
           
       - name: 上传中间结果
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: intermediate-results
           path: |
@@ -53,7 +53,7 @@ jobs:
           pip install requests pyyaml beautifulsoup4 lxml
 
       - name: 下载中间结果
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: intermediate-results
 
