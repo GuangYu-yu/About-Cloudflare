@@ -90,47 +90,6 @@ async def main(query_method):
         for domain, ip in results:
             f.write(f"{domain},{ip}\n")
 
-def query_ip(domain, method):
-    if method == 'bgp':
-        return query_bgp(None, domain)
-    elif method == 'dns_google':
-        return query_dns_google(None, domain)
-    elif method == 'twnic':
-        resolver = dns.resolver.Resolver()
-        resolver.nameservers = ['101.101.101.101']
-        try:
-            answers = resolver.resolve(domain, 'A')
-            return str(answers[0])
-        except:
-            return None
-    elif method == 'quad9':
-        resolver = dns.resolver.Resolver()
-        resolver.nameservers = ['9.9.9.9']
-        try:
-            answers = resolver.resolve(domain, 'A')
-            return str(answers[0])
-        except:
-            return None
-    elif method == 'opendns':
-        resolver = dns.resolver.Resolver()
-        resolver.nameservers = ['208.67.222.222']
-        try:
-            answers = resolver.resolve(domain, 'A')
-            return str(answers[0])
-        except:
-            return None
-    elif method == 'cloudflare':
-        resolver = dns.resolver.Resolver()
-        resolver.nameservers = ['1.1.1.1']
-        try:
-            answers = resolver.resolve(domain, 'A')
-            return str(answers[0])
-        except:
-            return None
-    else:
-        print(f"未知的查询方法: {method}")
-        return None
-
 if __name__ == "__main__":
     if len(sys.argv) != 2:
         print("Usage: python query_ip.py <query_method>")
