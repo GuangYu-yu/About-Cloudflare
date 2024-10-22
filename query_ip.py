@@ -4,23 +4,27 @@ import time
 from bs4 import BeautifulSoup
 import aiohttp
 import sys
+import dns.resolver
 
-async def query_bgp(session, domain):
+async def query_with_rate_limit(func, *args):
     while True:
         try:
-            await asyncio.sleep(random.uniform(3, 5))
-            query_url = f"https://bgp.he.net/dns/{domain}#_ipinfo"
-            async with session.get(query_url) as response:
-                content = await response.text()
-            soup = BeautifulSoup(content, 'html.parser')
-            ip_info_div = soup.find('div', id='ipinfo')
-            if ip_info_div:
-                ips = [a.get('title') for a in ip_info_div.find_all('a') if a.get('href', '').startswith('/ip/')]
-                return list(set(ips))
-            return []
+            await asyncio.sleep(random.uniform(2, 3))
+            return await func(*args)
         except Exception as e:
-            print(f"查询域名失败：{domain}，错误信息: {e}")
-            continue
+            print(f"查询失败: {e}")
+            await asyncio.sleep(5)
+
+async def query_bgp(session, domain):
+    query_url = f"https://bgp.he.net/dns/{domain}#_ipinfo"
+    async with session.get(query_url) as response:
+        content = await response.text()
+    soup = BeautifulSoup(content, 'html.parser')
+    ip_info_div = soup.find('div', id='ipinfo')
+    if ip_info_div:
+        ips = [a.get('title') for a in ip_info_div.find_all('a') if a.get('href', '').startswith('/ip/')]
+        return list(set(ips))
+    return []
 
 async def query_dns_google(session, domain):
     ipv4_url = f"https://dns.google/resolve?name={domain}&type=A"
@@ -37,12 +41,22 @@ async def query_dns_google(session, domain):
     ipv6 = await fetch_ip(ipv6_url)
     return list(set(ipv4 + ipv6))
 
+async def query_dns(domain, nameserver):
+    resolver = dns.resolver.Resolver()
+    resolver.nameservers = [nameserver]
+    try:
+        ipv4 = [str(ip) for ip in resolver.resolve(domain, 'A')]
+        ipv6 = [str(ip) for ip in resolver.resolve(domain, 'AAAA')]
+        return list(set(ipv4 + ipv6))
+    except:
+        return []
+
 async def process_domains(domains, query_func, semaphore):
     results = []
     async with aiohttp.ClientSession() as session:
         async def worker(domain):
             async with semaphore:
-                ips = await query_func(session, domain)
+                ips = await query_with_rate_limit(query_func, session, domain)
                 results.extend((domain, ip) for ip in ips)
 
         tasks = [asyncio.create_task(worker(domain)) for domain in domains]
@@ -54,12 +68,20 @@ async def main(query_method):
     with open('temp_domains.txt', 'r') as f:
         domains = f.read().splitlines()
 
+    semaphore = asyncio.Semaphore(5)  # 限制并发查询数为5
+
     if query_method == 'bgp':
-        semaphore = asyncio.Semaphore(10)
         results = await process_domains(domains, query_bgp, semaphore)
     elif query_method == 'dns_google':
-        semaphore = asyncio.Semaphore(5)
         results = await process_domains(domains, query_dns_google, semaphore)
+    elif query_method in ['twnic', 'quad9', 'opendns', 'cloudflare']:
+        nameservers = {
+            'twnic': '101.101.101.101',
+            'quad9': '9.9.9.9',
+            'opendns': '208.67.222.222',
+            'cloudflare': '1.1.1.1'
+        }
+        results = await process_domains(domains, lambda s, d: query_dns(d, nameservers[query_method]), semaphore)
     else:
         print(f"未知的查询方法: {query_method}")
         return
@@ -67,6 +89,47 @@ async def main(query_method):
     with open(f'ip_results_{query_method}.txt', 'w') as f:
         for domain, ip in results:
             f.write(f"{domain},{ip}\n")
+
+def query_ip(domain, method):
+    if method == 'bgp':
+        return query_bgp(None, domain)
+    elif method == 'dns_google':
+        return query_dns_google(None, domain)
+    elif method == 'twnic':
+        resolver = dns.resolver.Resolver()
+        resolver.nameservers = ['101.101.101.101']
+        try:
+            answers = resolver.resolve(domain, 'A')
+            return str(answers[0])
+        except:
+            return None
+    elif method == 'quad9':
+        resolver = dns.resolver.Resolver()
+        resolver.nameservers = ['9.9.9.9']
+        try:
+            answers = resolver.resolve(domain, 'A')
+            return str(answers[0])
+        except:
+            return None
+    elif method == 'opendns':
+        resolver = dns.resolver.Resolver()
+        resolver.nameservers = ['208.67.222.222']
+        try:
+            answers = resolver.resolve(domain, 'A')
+            return str(answers[0])
+        except:
+            return None
+    elif method == 'cloudflare':
+        resolver = dns.resolver.Resolver()
+        resolver.nameservers = ['1.1.1.1']
+        try:
+            answers = resolver.resolve(domain, 'A')
+            return str(answers[0])
+        except:
+            return None
+    else:
+        print(f"未知的查询方法: {method}")
+        return None
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
