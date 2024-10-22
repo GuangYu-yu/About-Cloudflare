@@ -37,22 +37,6 @@ async def query_dns_google(session, domain):
     ipv6 = await fetch_ip(ipv6_url)
     return list(set(ipv4 + ipv6))
 
-async def query_cloudflare(session, domain):
-    ipv4_url = f"https://cloudflare-dns.com/dns-query?name={domain}&type=A"
-    ipv6_url = f"https://cloudflare-dns.com/dns-query?name={domain}&type=AAAA"
-    
-    async def fetch_ip(url):
-        headers = {'accept': 'application/dns-json'}
-        async with session.get(url, headers=headers) as response:
-            data = await response.json()
-            if data.get('Answer'):
-                return [answer['data'] for answer in data['Answer'] if answer['type'] in (1, 28)]
-            return []
-
-    ipv4 = await fetch_ip(ipv4_url)
-    ipv6 = await fetch_ip(ipv6_url)
-    return list(set(ipv4 + ipv6))
-
 async def process_domains(domains, query_func, semaphore):
     results = []
     async with aiohttp.ClientSession() as session:
@@ -76,9 +60,6 @@ async def main(query_method):
     elif query_method == 'dns_google':
         semaphore = asyncio.Semaphore(5)
         results = await process_domains(domains, query_dns_google, semaphore)
-    elif query_method == 'cloudflare':
-        semaphore = asyncio.Semaphore(5)
-        results = await process_domains(domains, query_cloudflare, semaphore)
     else:
         print(f"未知的查询方法: {query_method}")
         return
