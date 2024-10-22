@@ -2,7 +2,7 @@ import asyncio
 import aiohttp
 import ipaddress
 import os
-from fetch_domains import fetch_domains
+from fetch_domains import fetch_domains, TEMP_DOMAINS_FILE
 from query_ip import query_ip
 
 # 定义URL常量
@@ -54,8 +54,8 @@ async def main():
         f.write('\n'.join(sorted(optimized_ips)))
 
     # 清理临时文件
+    os.remove(TEMP_DOMAINS_FILE)
     for method in query_methods:
-        os.remove(f'domains_{method}.txt')
         os.remove(f'ip_results_{method}.txt')
 
 if __name__ == "__main__":
