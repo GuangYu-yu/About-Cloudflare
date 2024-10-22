@@ -88,10 +88,20 @@ jobs:
       - name: 优化结果
         run: python optimize_results.py
 
-      - name: 提交更改
+      - name: 检查是否有更改
+        run: |
+          git add .
+          if git diff --cached --quiet; then
+            echo "没有需要提交的更改"
+            exit 0
+          fi
+
+      - name: 提交并推送更改
+        if: success()
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add 优选域名.txt 优选域名ip.txt
-          git commit -m "更新优选域名和IP" || echo "No changes to commit"
-          git push
+          git commit -m "Downloaded and processed files on $(date '+%Y/%m/%d %H:%M:%S')" || echo "没有需要提交的更改，跳过提交。"
+          git pull --rebase
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+          git push || echo "没有需要推送的更改，跳过推送。"
