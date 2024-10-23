@@ -34,7 +34,16 @@ async def main():
     # 获取CIDR列表
     async with aiohttp.ClientSession() as session:
         cidr_content = await fetch_url(session, CIDR_URL)
-    cidr_list = [ipaddress.ip_network(line.split(',')[1]) for line in cidr_content.splitlines() if line.startswith('IP-CIDR,')]
+    cidr_list = []
+    for line in cidr_content.splitlines():
+        line = line.strip()
+        if line:
+            try:
+                cidr_list.append(ipaddress.ip_network(line))
+            except ValueError as e:
+                print(f"无效的CIDR: {line}. 错误: {e}")
+
+    print(f"有效的CIDR数量: {len(cidr_list)}")
 
     # 匹配IP和CIDR
     optimized_domains = set()
