@@ -36,7 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        query_method: [bgp, google, quad9, twnic, opendns, cloudflare, sb, iij]
+        query_method: [bgp, google, quad9, twnic, cloudflare, sb, kr_sel, sg_sin, jp_nrt, hk_hkg]
     steps:
       - name: 检查出代码库
         uses: actions/checkout@v3
