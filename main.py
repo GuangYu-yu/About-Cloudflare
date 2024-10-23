@@ -20,7 +20,7 @@ async def main():
     # 获取并分割域名列表
     await fetch_domains()
     
-    query_methods = ['bgp', 'google', 'quad9', 'twnic', 'uk_lon', 'sb', 'kr_sel', 'sg_sin', 'jp_nrt', 'hk_hkg']
+    query_methods = ['de_fra', 'google', 'quad9', 'twnic', 'uk_lon', 'sb', 'kr_sel', 'sg_sin', 'jp_nrt', 'hk_hkg']
     
     results = []
     for method in query_methods:
