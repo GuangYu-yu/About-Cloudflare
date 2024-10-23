@@ -20,7 +20,7 @@ async def main():
     # 获取并分割域名列表
     await fetch_domains()
     
-    query_methods = ['bgp', 'cloudflare', 'google', 'quad9', 'opendns', 'twnic']
+    query_methods = ['bgp', 'google', 'quad9', 'twnic']
     
     results = []
     for method in query_methods:
