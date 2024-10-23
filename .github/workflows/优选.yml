@@ -2,7 +2,7 @@ name: 优选域名和IP
 
 on:
   schedule:
-    - cron: "0 16 */3 * *"
+    - cron: "0 16 1 * *"
   workflow_dispatch:  # 允许手动触发
 
 jobs:
