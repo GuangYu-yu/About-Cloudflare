@@ -30,14 +30,16 @@ async def query_bgp(session, domain):
 async def query_dns_json(session, ipv4_url, ipv6_url):
     async def fetch_ip(url):
         headers = {
-            'accept': 'application/dns-json',
-            'content-type': 'application/dns-json'
+            'accept': 'application/dns-json'
         }
         async with session.get(url, headers=headers) as response:
             if response.status == 200:
-                data = await response.json()
-                if data.get('Answer'):
-                    return [answer['data'] for answer in data['Answer'] if answer['type'] in (1, 28)]
+                try:
+                    data = await response.json()
+                    if data.get('Answer'):
+                        return [answer['data'] for answer in data['Answer'] if answer['type'] in (1, 28)]
+                except aiohttp.ContentTypeError:
+                    print(f"解析JSON失败: {url}")
             else:
                 print(f"查询失败: {url} 返回状态码 {response.status}")
             return []
@@ -61,11 +63,6 @@ async def query_dns_twnic(session, domain):
         f"https://dns.twnic.tw/dns-query?name={domain}&type=A",
         f"https://dns.twnic.tw/dns-query?name={domain}&type=AAAA")
 
-async def query_dns_opendns(session, domain):
-    return await query_dns_json(session, 
-        f"https://doh.opendns.com/dns-query?name={domain}&type=A",
-        f"https://doh.opendns.com/dns-query?name={domain}&type=AAAA")
-
 async def query_dns_cloudflare(session, domain):
     return await query_dns_json(session, 
         f"https://cloudflare-dns.com/dns-query?name={domain}&type=A",
@@ -76,10 +73,25 @@ async def query_dns_sb(session, domain):
         f"https://doh.sb/dns-query?name={domain}&type=A",
         f"https://doh.sb/dns-query?name={domain}&type=AAAA")
 
-async def query_dns_iij(session, domain):
+async def query_dns_kr_sel(session, domain):
     return await query_dns_json(session, 
-        f"https://public.dns.iij.jp/dns-query?name={domain}&type=A",
-        f"https://public.dns.iij.jp/dns-query?name={domain}&type=AAAA")
+        f"https://kr-sel.doh.sb/dns-query?name={domain}&type=A",
+        f"https://kr-sel.doh.sb/dns-query?name={domain}&type=AAAA")
+
+async def query_dns_sg_sin(session, domain):
+    return await query_dns_json(session, 
+        f"https://sg-sin.doh.sb/dns-query?name={domain}&type=A",
+        f"https://sg-sin.doh.sb/dns-query?name={domain}&type=AAAA")
+
+async def query_dns_jp_nrt(session, domain):
+    return await query_dns_json(session, 
+        f"https://jp-nrt.doh.sb/dns-query?name={domain}&type=A",
+        f"https://jp-nrt.doh.sb/dns-query?name={domain}&type=AAAA")
+
+async def query_dns_hk_hkg(session, domain):
+    return await query_dns_json(session, 
+        f"https://hk-hkg.doh.sb/dns-query?name={domain}&type=A",
+        f"https://hk-hkg.doh.sb/dns-query?name={domain}&type=AAAA")
 
 async def process_domains(domains, query_func, semaphore):
     results = []
@@ -99,8 +111,8 @@ async def main(query_method):
         all_domains = f.read().splitlines()
 
     # 新的查询方法和比例
-    query_methods = ['bgp', 'google', 'quad9', 'twnic', 'opendns', 'cloudflare', 'sb', 'iij']
-    method_ratios = {'bgp': 3, 'google': 3, 'quad9': 1, 'twnic': 1, 'opendns': 1, 'cloudflare': 1, 'sb': 1, 'iij': 1}
+    query_methods = ['bgp', 'google', 'quad9', 'twnic', 'cloudflare', 'sb', 'kr_sel', 'sg_sin', 'jp_nrt', 'hk_hkg']
+    method_ratios = {'bgp': 1, 'google': 1, 'quad9': 1, 'twnic': 1, 'cloudflare': 1, 'sb': 1, 'kr_sel': 1, 'sg_sin': 1, 'jp_nrt': 1, 'hk_hkg': 1}
     total_ratio = sum(method_ratios.values())
 
     total_domains = len(all_domains)
@@ -126,10 +138,12 @@ async def main(query_method):
         'google': query_dns_google,
         'quad9': query_dns_quad9,
         'twnic': query_dns_twnic,
-        'opendns': query_dns_opendns,
         'cloudflare': query_dns_cloudflare,
         'sb': query_dns_sb,
-        'iij': query_dns_iij
+        'kr_sel': query_dns_kr_sel,
+        'sg_sin': query_dns_sg_sin,
+        'jp_nrt': query_dns_jp_nrt,
+        'hk_hkg': query_dns_hk_hkg
     }
 
     if query_method in query_functions:
