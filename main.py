@@ -23,9 +23,13 @@ async def main():
     
     results = []
     for method in query_methods:
-        with open(f'ip_results_{method}.txt', 'r') as f:
-            method_results = [line.strip().split(',') for line in f]
-            results.extend(method_results)
+        file_path = f'ip-results-{method}/ip_results_{method}.txt'
+        if os.path.exists(file_path):
+            with open(file_path, 'r') as f:
+                method_results = [line.strip().split(',') for line in f]
+                results.extend(method_results)
+        else:
+            print(f"警告: 文件 {file_path} 不存在")
     
     # 获取CIDR列表
     async with aiohttp.ClientSession() as session:
@@ -53,9 +57,12 @@ async def main():
         f.write('\n'.join(sorted(optimized_ips)))
 
     # 清理临时文件
-    os.remove(TEMP_DOMAINS_FILE)
+    if os.path.exists(TEMP_DOMAINS_FILE):
+        os.remove(TEMP_DOMAINS_FILE)
     for method in query_methods:
-        os.remove(f'ip_results_{method}.txt')
+        file_path = f'ip-results-{method}/ip_results_{method}.txt'
+        if os.path.exists(file_path):
+            os.remove(file_path)
 
 if __name__ == "__main__":
     asyncio.run(main())
