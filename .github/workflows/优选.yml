@@ -85,7 +85,7 @@ jobs:
       - name: 下载所有查询结果
         uses: actions/download-artifact@v3
 
-      - name: 优化结果
+      - name: 匹配CIDR
         run: python main.py
 
       - name: 提交更改
