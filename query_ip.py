@@ -4,7 +4,8 @@ import time
 from bs4 import BeautifulSoup
 import aiohttp
 import sys
-import dns.resolver
+import math
+import json
 
 async def query_with_rate_limit(func, *args):
     while True:
@@ -29,7 +30,19 @@ async def query_bgp(session, domain):
 async def query_dns_google(session, domain):
     ipv4_url = f"https://dns.google/resolve?name={domain}&type=A"
     ipv6_url = f"https://dns.google/resolve?name={domain}&type=AAAA"
-    
+    return await query_dns_json(session, ipv4_url, ipv6_url)
+
+async def query_dns_quad9(session, domain):
+    ipv4_url = f"https://dns10.quad9.net:5053/dns-query?name={domain}&type=A"
+    ipv6_url = f"https://dns10.quad9.net:5053/dns-query?name={domain}&type=AAAA"
+    return await query_dns_json(session, ipv4_url, ipv6_url)
+
+async def query_dns_twnic(session, domain):
+    ipv4_url = f"https://dns.twnic.tw/dns-query?name={domain}&type=A"
+    ipv6_url = f"https://dns.twnic.tw/dns-query?name={domain}&type=AAAA"
+    return await query_dns_json(session, ipv4_url, ipv6_url)
+
+async def query_dns_json(session, ipv4_url, ipv6_url):
     async def fetch_ip(url):
         async with session.get(url) as response:
             data = await response.json()
@@ -40,16 +53,6 @@ async def query_dns_google(session, domain):
     ipv4 = await fetch_ip(ipv4_url)
     ipv6 = await fetch_ip(ipv6_url)
     return list(set(ipv4 + ipv6))
-
-async def query_dns(domain, nameserver):
-    resolver = dns.resolver.Resolver()
-    resolver.nameservers = [nameserver]
-    try:
-        ipv4 = [str(ip) for ip in resolver.resolve(domain, 'A')]
-        ipv6 = [str(ip) for ip in resolver.resolve(domain, 'AAAA')]
-        return list(set(ipv4 + ipv6))
-    except:
-        return []
 
 async def process_domains(domains, query_func, semaphore):
     results = []
@@ -68,18 +71,22 @@ async def main(query_method):
     with open('temp_domains.txt', 'r') as f:
         all_domains = f.read().splitlines()
 
-    # 根据查询方法选择域名子集
-    query_methods = ['bgp', 'cloudflare', 'google', 'quad9', 'opendns', 'twnic']
-    method_index = query_methods.index(query_method)
-    total_domains = len(all_domains)
-    domains_per_method = total_domains // len(query_methods)
-    remainder = total_domains % len(query_methods)
+    # 新的查询方法和比例
+    query_methods = ['bgp', 'google', 'quad9', 'twnic']
+    method_ratios = {'bgp': 4, 'google': 4, 'quad9': 1, 'twnic': 1}
+    total_ratio = sum(method_ratios.values())
 
-    start = method_index * domains_per_method + min(method_index, remainder)
-    if method_index < remainder:
-        end = start + domains_per_method + 1
-    else:
-        end = start + domains_per_method
+    total_domains = len(all_domains)
+    method_index = query_methods.index(query_method)
+
+    # 计算每个方法应处理的域名数量
+    domains_per_ratio = total_domains / total_ratio
+    start = 0
+    for i in range(method_index):
+        start += math.ceil(domains_per_ratio * method_ratios[query_methods[i]])
+    
+    end = start + math.ceil(domains_per_ratio * method_ratios[query_method])
+    end = min(end, total_domains)  # 确保不超过总域名数
 
     domains = all_domains[start:end]
 
@@ -91,14 +98,10 @@ async def main(query_method):
         results = await process_domains(domains, query_bgp, semaphore)
     elif query_method == 'google':
         results = await process_domains(domains, query_dns_google, semaphore)
-    elif query_method in ['twnic', 'quad9', 'opendns', 'cloudflare']:
-        nameservers = {
-            'twnic': '101.101.101.101',
-            'quad9': '9.9.9.10',
-            'opendns': '208.67.222.222',
-            'cloudflare': '1.1.1.1'
-        }
-        results = await process_domains(domains, lambda s, d: query_dns(d, nameservers[query_method]), semaphore)
+    elif query_method == 'quad9':
+        results = await process_domains(domains, query_dns_quad9, semaphore)
+    elif query_method == 'twnic':
+        results = await process_domains(domains, query_dns_twnic, semaphore)
     else:
         print(f"未知的查询方法: {query_method}")
         return
