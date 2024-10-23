@@ -117,7 +117,7 @@ async def main(query_method):
 
     # 新的查询方法和比例
     query_methods = ['de_fra', 'google', 'quad9', 'twnic', 'uk_lon', 'sb', 'kr_sel', 'sg_sin', 'jp_nrt', 'hk_hkg']
-    method_ratios = {'de_fra': 58, 'google': 71, 'quad9': 71, 'twnic': 58, 'uk_lon': 62, 'sb': 67, 'kr_sel': 62, 'sg_sin': 40, 'jp_nrt': 51, 'hk_hkg': 45}
+    method_ratios = {'de_fra': 60, 'google': 71, 'quad9': 71, 'twnic': 58, 'uk_lon': 62, 'sb': 68, 'kr_sel': 62, 'sg_sin': 38, 'jp_nrt': 51, 'hk_hkg': 45}
     total_ratio = sum(method_ratios.values())
 
     total_domains = len(all_domains)
