@@ -3,7 +3,6 @@ import aiohttp
 import ipaddress
 import os
 from fetch_domains import fetch_domains, TEMP_DOMAINS_FILE
-from query_ip import query_ip
 
 # 定义URL常量
 CIDR_URL = 'https://raw.githubusercontent.com/GuangYu-yu/ACL4SSR/refs/heads/main/Clash/Cloudflare.txt'
