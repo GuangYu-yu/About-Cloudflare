@@ -27,32 +27,59 @@ async def query_bgp(session, domain):
         return list(set(ips))
     return []
 
-async def query_dns_google(session, domain):
-    ipv4_url = f"https://dns.google/resolve?name={domain}&type=A"
-    ipv6_url = f"https://dns.google/resolve?name={domain}&type=AAAA"
-    return await query_dns_json(session, ipv4_url, ipv6_url)
-
-async def query_dns_quad9(session, domain):
-    ipv4_url = f"https://dns10.quad9.net:5053/dns-query?name={domain}&type=A"
-    ipv6_url = f"https://dns10.quad9.net:5053/dns-query?name={domain}&type=AAAA"
-    return await query_dns_json(session, ipv4_url, ipv6_url)
-
-async def query_dns_twnic(session, domain):
-    ipv4_url = f"https://dns.twnic.tw/dns-query?name={domain}&type=A"
-    ipv6_url = f"https://dns.twnic.tw/dns-query?name={domain}&type=AAAA"
-    return await query_dns_json(session, ipv4_url, ipv6_url)
-
 async def query_dns_json(session, ipv4_url, ipv6_url):
     async def fetch_ip(url):
-        async with session.get(url) as response:
-            data = await response.json()
-            if data.get('Answer'):
-                return [answer['data'] for answer in data['Answer'] if answer['type'] in (1, 28)]
+        headers = {
+            'accept': 'application/dns-json',
+            'content-type': 'application/dns-json'
+        }
+        async with session.get(url, headers=headers) as response:
+            if response.status == 200:
+                data = await response.json()
+                if data.get('Answer'):
+                    return [answer['data'] for answer in data['Answer'] if answer['type'] in (1, 28)]
+            else:
+                print(f"查询失败: {url} 返回状态码 {response.status}")
             return []
 
     ipv4 = await fetch_ip(ipv4_url)
     ipv6 = await fetch_ip(ipv6_url)
     return list(set(ipv4 + ipv6))
+
+async def query_dns_google(session, domain):
+    return await query_dns_json(session, 
+        f"https://dns.google/resolve?name={domain}&type=A",
+        f"https://dns.google/resolve?name={domain}&type=AAAA")
+
+async def query_dns_quad9(session, domain):
+    return await query_dns_json(session, 
+        f"https://dns10.quad9.net:5053/dns-query?name={domain}&type=A",
+        f"https://dns10.quad9.net:5053/dns-query?name={domain}&type=AAAA")
+
+async def query_dns_twnic(session, domain):
+    return await query_dns_json(session, 
+        f"https://dns.twnic.tw/dns-query?name={domain}&type=A",
+        f"https://dns.twnic.tw/dns-query?name={domain}&type=AAAA")
+
+async def query_dns_opendns(session, domain):
+    return await query_dns_json(session, 
+        f"https://doh.opendns.com/dns-query?name={domain}&type=A",
+        f"https://doh.opendns.com/dns-query?name={domain}&type=AAAA")
+
+async def query_dns_cloudflare(session, domain):
+    return await query_dns_json(session, 
+        f"https://cloudflare-dns.com/dns-query?name={domain}&type=A",
+        f"https://cloudflare-dns.com/dns-query?name={domain}&type=AAAA")
+
+async def query_dns_sb(session, domain):
+    return await query_dns_json(session, 
+        f"https://doh.sb/dns-query?name={domain}&type=A",
+        f"https://doh.sb/dns-query?name={domain}&type=AAAA")
+
+async def query_dns_iij(session, domain):
+    return await query_dns_json(session, 
+        f"https://public.dns.iij.jp/dns-query?name={domain}&type=A",
+        f"https://public.dns.iij.jp/dns-query?name={domain}&type=AAAA")
 
 async def process_domains(domains, query_func, semaphore):
     results = []
@@ -72,8 +99,8 @@ async def main(query_method):
         all_domains = f.read().splitlines()
 
     # 新的查询方法和比例
-    query_methods = ['bgp', 'google', 'quad9', 'twnic']
-    method_ratios = {'bgp': 4, 'google': 4, 'quad9': 1, 'twnic': 1}
+    query_methods = ['bgp', 'google', 'quad9', 'twnic', 'opendns', 'cloudflare', 'sb', 'iij']
+    method_ratios = {'bgp': 3, 'google': 3, 'quad9': 1, 'twnic': 1, 'opendns': 1, 'cloudflare': 1, 'sb': 1, 'iij': 1}
     total_ratio = sum(method_ratios.values())
 
     total_domains = len(all_domains)
@@ -94,14 +121,23 @@ async def main(query_method):
 
     semaphore = asyncio.Semaphore(10)  # 限制并发查询数为10
 
-    if query_method == 'bgp':
-        results = await process_domains(domains, query_bgp, semaphore)
-    elif query_method == 'google':
-        results = await process_domains(domains, query_dns_google, semaphore)
-    elif query_method == 'quad9':
-        results = await process_domains(domains, query_dns_quad9, semaphore)
-    elif query_method == 'twnic':
-        results = await process_domains(domains, query_dns_twnic, semaphore)
+    query_functions = {
+        'bgp': query_bgp,
+        'google': query_dns_google,
+        'quad9': query_dns_quad9,
+        'twnic': query_dns_twnic,
+        'opendns': query_dns_opendns,
+        'cloudflare': query_dns_cloudflare,
+        'sb': query_dns_sb,
+        'iij': query_dns_iij
+    }
+
+    if query_method in query_functions:
+        try:
+            results = await process_domains(domains, query_functions[query_method], semaphore)
+        except Exception as e:
+            print(f"处理 {query_method} 时发生错误: {e}")
+            return
     else:
         print(f"未知的查询方法: {query_method}")
         return
