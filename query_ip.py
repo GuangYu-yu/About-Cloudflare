@@ -63,11 +63,6 @@ async def query_dns_twnic(session, domain):
         f"https://dns.twnic.tw/dns-query?name={domain}&type=A",
         f"https://dns.twnic.tw/dns-query?name={domain}&type=AAAA")
 
-async def query_dns_cloudflare(session, domain):
-    return await query_dns_json(session, 
-        f"https://cloudflare-dns.com/dns-query?name={domain}&type=A",
-        f"https://cloudflare-dns.com/dns-query?name={domain}&type=AAAA")
-
 async def query_dns_sb(session, domain):
     return await query_dns_json(session, 
         f"https://doh.sb/dns-query?name={domain}&type=A",
@@ -93,6 +88,11 @@ async def query_dns_hk_hkg(session, domain):
         f"https://hk-hkg.doh.sb/dns-query?name={domain}&type=A",
         f"https://hk-hkg.doh.sb/dns-query?name={domain}&type=AAAA")
 
+async def query_dns_uk_lon(session, domain):
+    return await query_dns_json(session, 
+        f"https://uk-lon.doh.sb/dns-query?name={domain}&type=A",
+        f"https://uk-lon.doh.sb/dns-query?name={domain}&type=AAAA")
+
 async def process_domains(domains, query_func, semaphore):
     results = []
     async with aiohttp.ClientSession() as session:
@@ -111,8 +111,8 @@ async def main(query_method):
         all_domains = f.read().splitlines()
 
     # 新的查询方法和比例
-    query_methods = ['bgp', 'google', 'quad9', 'twnic', 'cloudflare', 'sb', 'kr_sel', 'sg_sin', 'jp_nrt', 'hk_hkg']
-    method_ratios = {'bgp': 1, 'google': 1, 'quad9': 1, 'twnic': 1, 'cloudflare': 1, 'sb': 1, 'kr_sel': 1, 'sg_sin': 1, 'jp_nrt': 1, 'hk_hkg': 1}
+    query_methods = ['bgp', 'google', 'quad9', 'twnic', 'uk_lon', 'sb', 'kr_sel', 'sg_sin', 'jp_nrt', 'hk_hkg']
+    method_ratios = {'bgp': 1, 'google': 1, 'quad9': 1, 'twnic': 1, 'uk_lon': 1, 'sb': 1, 'kr_sel': 1, 'sg_sin': 1, 'jp_nrt': 1, 'hk_hkg': 1}
     total_ratio = sum(method_ratios.values())
 
     total_domains = len(all_domains)
@@ -138,7 +138,7 @@ async def main(query_method):
         'google': query_dns_google,
         'quad9': query_dns_quad9,
         'twnic': query_dns_twnic,
-        'cloudflare': query_dns_cloudflare,
+        'uk_lon': query_dns_uk_lon,
         'sb': query_dns_sb,
         'kr_sel': query_dns_kr_sel,
         'sg_sin': query_dns_sg_sin,
