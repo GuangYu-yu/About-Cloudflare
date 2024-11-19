@@ -25,32 +25,37 @@ jobs:
           # 获取三个月前的时间戳
           CUTOFF_DATE=$(date -d "3 months ago" +%s)
           
-          # 创建临时分支
-          git checkout --orphan temp_branch
+          # 创建一个新分支来存储最近三个月的提交
+          git checkout -b temp_branch
           
-          # 添加当前所有文件
-          git add -A
+          # 找到三个月前最后一个提交的 SHA
+          CUTOFF_COMMIT=$(git log --before="3 months ago" --format=%H -n 1)
           
-          # 创建新的提交
-          git commit -m "清理历史提交：保留最近三个月的记录"
-          
-          # 删除所有旧分支
-          git branch | grep -v "temp_branch" | xargs git branch -D
-          
-          # 将临时分支重命名为主分支
-          git branch -m main
+          if [ ! -z "$CUTOFF_COMMIT" ]; then
+            # 使用 git filter-branch 删除旧提交，但保留文件状态
+            git filter-branch --parent-filter "
+              read p
+              if [ \$GIT_COMMIT = $CUTOFF_COMMIT ]; then
+                echo ''
+              else
+                echo \"\$p\"
+              fi" HEAD
+            
+            # 清理备份
+            git for-each-ref --format="%(refname)" refs/original/ | xargs -n 1 git update-ref -d
+          fi
           
           # 获取最新的标签
           LATEST_TAG=$(git describe --tags `git rev-list --tags --max-count=1` 2>/dev/null || echo "")
           
-          # 删除所有标签
-          git tag | xargs git tag -d
-          
-          # 如果存在最新标签，则重新创建
-          if [ ! -z "$LATEST_TAG" ]; then
-            git tag $LATEST_TAG
-          fi
+          # 删除三个月前的标签
+          git tag | while read tag; do
+            TAG_DATE=$(git log -1 --format=%at $tag)
+            if [ $TAG_DATE -lt $CUTOFF_DATE ]; then
+              git tag -d $tag
+            fi
+          done
           
           # 强制推送更改
-          git push -f origin main
-          git push -f --tags 
+          git push -f origin temp_branch:main
+          git push -f --tags
