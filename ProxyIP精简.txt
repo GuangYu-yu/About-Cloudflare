@@ -1,0 +1,17 @@
+ts.hpc.tw
+proxy.xxxxxxxx.tk
+bestproxy.onecf.eu.org
+hk.cf.zhetengsha.eu.org
+jp.cf.zhetengsha.eu.org
+sg.cf.zhetengsha.eu.org
+ProxyIP.US.fxxk.dedyn.io
+ProxyIP.SG.fxxk.dedyn.io
+ProxyIP.JP.fxxk.dedyn.io
+ProxyIP.HK.fxxk.dedyn.io
+ProxyIP.KR.fxxk.dedyn.io
+edgetunnel.anycast.eu.org
+ProxyIP.Vultr.fxxk.dedyn.io
+ProxyIP.Aliyun.fxxk.dedyn.io
+ProxyIP.Oracle.fxxk.dedyn.io
+ProxyIP.Multacom.fxxk.dedyn.io
+ProxyIP.DigitalOcean.fxxk.dedyn.io

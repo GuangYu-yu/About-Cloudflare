@@ -1,0 +1,56 @@
+name: 清理仓库历史
+
+on:
+  workflow_dispatch:  # 手动触发
+  schedule:
+    - cron: '0 0 1 * *'
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 获取完整历史记录
+      
+      - name: 配置 Git
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+      
+      - name: 清理历史提交
+        run: |
+          # 获取三个月前的时间戳
+          CUTOFF_DATE=$(date -d "3 months ago" +%s)
+          
+          # 创建临时分支
+          git checkout --orphan temp_branch
+          
+          # 添加当前所有文件
+          git add -A
+          
+          # 创建新的提交
+          git commit -m "清理历史提交：保留最近三个月的记录"
+          
+          # 删除所有旧分支
+          git branch | grep -v "temp_branch" | xargs git branch -D
+          
+          # 将临时分支重命名为主分支
+          git branch -m main
+          
+          # 获取最新的标签
+          LATEST_TAG=$(git describe --tags `git rev-list --tags --max-count=1` 2>/dev/null || echo "")
+          
+          # 删除所有标签
+          git tag | xargs git tag -d
+          
+          # 如果存在最新标签，则重新创建
+          if [ ! -z "$LATEST_TAG" ]; then
+            git tag $LATEST_TAG
+          fi
+          
+          # 强制推送更改
+          git push -f origin main
+          git push -f --tags 

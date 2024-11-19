@@ -1,0 +1,97 @@
+name: 优选域名和IP
+
+on:
+  schedule:
+    - cron: "0 16 1 * *"
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  fetch_domains:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检查出代码库
+        uses: actions/checkout@v3
+
+      - name: 设置 Python 环境
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: 安装依赖
+        run: |
+          python -m pip install --upgrade pip
+          pip install aiohttp
+
+      - name: 获取域名列表
+        run: python fetch_domains.py
+
+      - name: 上传域名列表
+        uses: actions/upload-artifact@v3
+        with:
+          name: domain-list
+          path: temp_domains.txt
+
+  query_ips:
+    needs: fetch_domains
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        query_method: [de_fra, google, quad9, twnic, uk_lon, sb, kr_sel, sg_sin, jp_nrt, hk_hkg]
+    steps:
+      - name: 检查出代码库
+        uses: actions/checkout@v3
+
+      - name: 设置 Python 环境
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: 安装依赖
+        run: |
+          python -m pip install --upgrade pip
+          pip install aiohttp beautifulsoup4
+
+      - name: 下载域名列表
+        uses: actions/download-artifact@v3
+        with:
+          name: domain-list
+
+      - name: 查询IP地址
+        run: python query_ip.py ${{ matrix.query_method }}
+
+      - name: 上传查询结果
+        uses: actions/upload-artifact@v3
+        with:
+          name: ip-results-${{ matrix.query_method }}
+          path: ip_results_${{ matrix.query_method }}.txt
+
+  optimize_results:
+    needs: query_ips
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检查出代码库
+        uses: actions/checkout@v3
+
+      - name: 设置 Python 环境
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: 安装依赖
+        run: |
+          python -m pip install --upgrade pip
+          pip install aiohttp ipaddress beautifulsoup4
+
+      - name: 下载所有查询结果
+        uses: actions/download-artifact@v3
+
+      - name: 匹配CIDR
+        run: python main.py
+
+      - name: 提交更改
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add 优选域名.txt 优选域名ip.txt
+          git commit -m "更新优选域名和IP" || echo "No changes to commit"
+          git push
