@@ -60,7 +60,7 @@ jobs:
         run: python query_ip.py ${{ matrix.query_method }}
 
       - name: 上传查询结果
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ip-results-${{ matrix.query_method }}
           path: ip_results_${{ matrix.query_method }}.txt
