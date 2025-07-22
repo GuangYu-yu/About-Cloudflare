@@ -52,7 +52,7 @@ jobs:
           pip install aiohttp beautifulsoup4
 
       - name: 下载域名列表
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: domain-list
 
@@ -83,7 +83,7 @@ jobs:
           pip install aiohttp ipaddress beautifulsoup4
 
       - name: 下载所有查询结果
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
 
       - name: 匹配CIDR
         run: python main.py
