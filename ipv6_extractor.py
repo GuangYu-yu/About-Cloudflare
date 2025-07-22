@@ -33,7 +33,7 @@ def get_ipv6_prefixes():
         prefixes = set()
         
         # 定义URL
-        source_url = 'https://www.182682.xyz/page/cloudflare/address_v6.html'
+        source_url = 'https://www.wetest.vip/page/cloudflare/address_v6.html'
         existing_url = 'https://raw.githubusercontent.com/GuangYu-yu/About-Cloudflare/refs/heads/main/ipv6_prefixes.txt'
         
         # 从现有URL获取前缀
