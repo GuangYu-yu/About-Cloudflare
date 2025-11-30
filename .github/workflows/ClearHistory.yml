@@ -1,0 +1,61 @@
+name: 清理仓库历史
+
+on:
+  workflow_dispatch:  # 手动触发
+  schedule:
+    - cron: '0 0 1 * *'
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 获取完整历史记录
+      
+      - name: 配置 Git
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+      
+      - name: 清理历史提交
+        run: |
+          # 获取三个月前的时间戳
+          CUTOFF_DATE=$(date -d "3 months ago" +%s)
+          
+          # 创建一个新分支来存储最近三个月的提交
+          git checkout -b temp_branch
+          
+          # 找到三个月前最后一个提交的 SHA
+          CUTOFF_COMMIT=$(git log --before="3 months ago" --format=%H -n 1)
+          
+          if [ ! -z "$CUTOFF_COMMIT" ]; then
+            # 使用 git filter-branch 删除旧提交，但保留文件状态
+            git filter-branch --parent-filter "
+              read p
+              if [ \$GIT_COMMIT = $CUTOFF_COMMIT ]; then
+                echo ''
+              else
+                echo \"\$p\"
+              fi" HEAD
+            
+            # 清理备份
+            git for-each-ref --format="%(refname)" refs/original/ | xargs -n 1 git update-ref -d
+          fi
+          
+          # 获取最新的标签
+          LATEST_TAG=$(git describe --tags `git rev-list --tags --max-count=1` 2>/dev/null || echo "")
+          
+          # 删除三个月前的标签
+          git tag | while read tag; do
+            TAG_DATE=$(git log -1 --format=%at $tag)
+            if [ $TAG_DATE -lt $CUTOFF_DATE ]; then
+              git tag -d $tag
+            fi
+          done
+          
+          # 强制推送更改
+          git push -f origin temp_branch:main
+          git push -f --tags
