@@ -1,0 +1,45 @@
+name: Update IPv6 Prefixes
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'  # 每15分钟运行一次
+  workflow_dispatch:        # 允许手动触发
+
+jobs:
+  update-prefixes:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v3
+        
+      - name: 设置Python环境
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+          
+      - name: 安装依赖
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests beautifulsoup4
+
+      - name: 运行IPv6提取脚本
+        run: python ipv6_extractor.py
+        
+      - name: 检查是否有更改
+        run: |
+          git add .
+          if git diff --cached --quiet; then
+            echo "没有需要提交的更改"
+            exit 0
+          fi
+
+      - name: 提交并推送更改
+        if: success()
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git commit -m "Downloaded and processed files on $(date '+%Y/%m/%d %H:%M:%S')" || echo "没有需要提交的更改，跳过提交。"
+          git pull --rebase
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+          git push || echo "没有需要推送的更改，跳过推送。" 
