@@ -1,0 +1,7 @@
+#IPv6
+=IFERROR(INDEX($A:$A, MATCH(TRUE, ISNUMBER(SEARCH(LEFT(INDIRECT("B" & ROW()), LEN(INDIRECT("B" & ROW()))-2), $A:$A)), 0)), "未找到")
+
+#IPv4
+=IFERROR(INDEX($A:$A, MATCH(TRUE, ISNUMBER(SEARCH(INDIRECT("B" & ROW()), $A:$A)), 0)), "未找到")
+
+第一列cidr，第二列去除掩码，测速后放在第三列，第三列放置公式，通过公式补全cidr
